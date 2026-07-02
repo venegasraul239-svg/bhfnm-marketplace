@@ -1,0 +1,8 @@
+name = "bhfnm-marketplace-router"
+main = "marketplace-router.js"
+compatibility_date = "2026-06-01"
+
+routes = [
+  { pattern = "buyhempflowernearme.com/marketplace*", zone_name = "buyhempflowernearme.com" }
+]
+# secrets: wrangler secret put VERCEL_ORIGIN ; wrangler secret put PROXY_SECRET

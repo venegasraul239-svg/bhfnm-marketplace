@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  /* Premium dark, compliance-first palette — fintech-grade, no dispensary kitsch */
+  --color-ink-950: #07090b;
+  --color-ink-900: #0b0e12;
+  --color-ink-850: #10141a;
+  --color-ink-800: #151a22;
+  --color-ink-700: #1e2530;
+  --color-ink-600: #2a3342;
+  --color-mist-400: #8b96a5;
+  --color-mist-300: #aab4c2;
+  --color-mist-200: #cdd4de;
+  --color-mist-100: #eef1f5;
+  --color-jade-600: #0e8f6f;
+  --color-jade-500: #12a97f;
+  --color-jade-400: #2cc496;
+  --color-jade-300: #6adcb8;
+  --color-amber-glow: #d9a441;
+  --color-signal-red: #e05252;
+  --color-btc: #f7931a;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-inter), ui-sans-serif, sans-serif;
+
+  --radius-card: 0.875rem;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-ink-950);
+  color: var(--color-mist-200);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-jade-500) 40%, transparent);
+}
+
+.gradient-hero {
+  background:
+    radial-gradient(1100px 500px at 75% -10%, color-mix(in srgb, var(--color-jade-600) 22%, transparent), transparent 65%),
+    radial-gradient(700px 400px at 10% 0%, color-mix(in srgb, #1a3350 45%, transparent), transparent 60%),
+    var(--color-ink-950);
+}
+
+.gradient-band {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-jade-600) 14%, var(--color-ink-900)), var(--color-ink-900) 60%);
+}
+
+.card-surface {
+  background: linear-gradient(180deg, var(--color-ink-850), var(--color-ink-900));
+  border: 1px solid var(--color-ink-700);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
