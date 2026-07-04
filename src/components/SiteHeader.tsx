@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Search, ShoppingBag, User } from "lucide-react";
+import { Search } from "lucide-react";
+import { AccountMenu } from "./AccountMenu";
 
 const NAV = [
   { label: "Hemp Flower", href: "/categories/hemp-flower" },
@@ -48,12 +49,7 @@ export function SiteHeader() {
           >
             Sell on BHFNM
           </Link>
-          <Link href="/account" aria-label="Account" className="rounded-lg p-2 text-mist-300 hover:bg-ink-800 hover:text-mist-100">
-            <User className="h-5 w-5" />
-          </Link>
-          <Link href="/orders" aria-label="Orders" className="rounded-lg p-2 text-mist-300 hover:bg-ink-800 hover:text-mist-100">
-            <ShoppingBag className="h-5 w-5" />
-          </Link>
+          <AccountMenu />
         </div>
       </div>
       <div className="border-t border-ink-800 bg-ink-900/60">
