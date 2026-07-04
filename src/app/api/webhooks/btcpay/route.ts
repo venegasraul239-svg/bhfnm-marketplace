@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { BtcPayProvider, getBtcPayConfig } from "@/lib/payments/btcpay";
 import { supabaseService } from "@/lib/supabase";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   const cfg = getBtcPayConfig();
@@ -57,12 +58,25 @@ export async function POST(req: Request) {
   await db.from("orders").update({ status: next.order }).eq("id", payment.order_id);
 
   // Ledger entries on settle: buyer_payment, platform_commission, vendor_earnings,
-  // reserve_hold — executed as a single RPC in production for atomicity.
+  // reserve_hold — executed as a single RPC (migration 0003) for atomicity.
   if (event.type === "settled" || event.type === "settled_overpaid") {
     await db.rpc("post_settlement_ledger", { p_order_id: payment.order_id }).then(
       () => undefined,
-      () => undefined // RPC ships with migration 0003; webhook stays retry-safe without it
+      (e) => console.error("[btcpay] settlement ledger RPC failed (apply migration 0003):", e)
     );
+
+    // Notify buyer + vendor (no-op until an email provider is configured).
+    const { data: order } = await db
+      .from("orders")
+      .select("order_number, buyer:profiles(email), vendor:vendors(support_email)")
+      .eq("id", payment.order_id)
+      .maybeSingle();
+    if (order) {
+      const buyer = order.buyer as unknown as { email: string } | null;
+      const vendor = order.vendor as unknown as { support_email: string | null } | null;
+      const recipients = [buyer?.email, vendor?.support_email].filter(Boolean) as string[];
+      await sendEmail("payment_received", recipients, { order: order.order_number });
+    }
   }
 
   return NextResponse.json({ ok: true });

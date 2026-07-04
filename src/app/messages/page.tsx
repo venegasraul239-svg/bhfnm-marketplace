@@ -1,24 +1,60 @@
+// Buyer inbox — real threads only (application Q&A, order threads).
+
 import type { Metadata } from "next";
-import { BUYER_NAV, DashboardShell, QueueTable } from "@/components/DashboardShell";
-import { Button, StatusPill } from "@/components/ui";
+import { redirect } from "next/navigation";
+import { BUYER_NAV, DashboardShell } from "@/components/DashboardShell";
+import { EmptyState } from "@/components/ui";
+import { getProfile } from "@/lib/auth";
+import { supabaseService } from "@/lib/supabase";
 
 export const metadata: Metadata = { title: "Messages", robots: { index: false } };
+export const dynamic = "force-dynamic";
 
-export default function MessagesPage() {
+export default async function MessagesPage() {
+  const profile = await getProfile();
+  if (!profile) redirect("/auth/sign-in?next=/messages");
+
+  const db = supabaseService();
+  const { data: threads } = db
+    ? await db
+        .from("message_threads")
+        .select("id, thread_type, created_at, vendor:vendors(brand_name), messages(body, sender_role, created_at)")
+        .eq("buyer_id", profile.id)
+        .order("created_at", { ascending: false })
+    : { data: null };
+
+  const rows = threads ?? [];
+
   return (
-    <DashboardShell title="Marketplace inbox" nav={BUYER_NAV} active="/messages">
+    <DashboardShell title="Messages" nav={BUYER_NAV} active="/messages">
       <p className="mb-6 text-sm text-mist-400">
-        All seller communication happens here — never by email or external apps. Threads are linked to orders or
-        product inquiries, messages are timestamped and can&apos;t be edited or deleted, and you can escalate any
-        order thread to a dispute.
+        All conversations stay on-platform. Vendors asking to move to email, chat apps, or direct payment are
+        violating policy — report it.
       </p>
-      <QueueTable
-        headers={["Thread", "Linked to", "Last message", "Status", ""]}
-        rows={[
-          ["Blue Ridge Hemp Co.", "Order BH-2607-4F2A1C", "“Label created, drops off today.” · 3h ago", <StatusPill key="s" tone="neutral">Active</StatusPill>, <Button key="a" size="sm">Open</Button>],
-          ["Solstice Labs", "Product inquiry: Lift Seltzer", "“12-packs restock next week.” · 2d ago", <StatusPill key="s" tone="neutral">Active</StatusPill>, <Button key="a" variant="ghost" size="sm">Open</Button>],
-        ]}
-      />
+      {rows.length === 0 ? (
+        <EmptyState
+          title="No conversations yet"
+          sub="Order questions, seller replies, and application review messages appear here."
+        />
+      ) : (
+        <ul className="space-y-2">
+          {rows.map((t) => {
+            const vendor = t.vendor as unknown as { brand_name: string } | null;
+            const last = (t.messages ?? []).slice(-1)[0];
+            return (
+              <li key={t.id} className="card-surface rounded-card px-4 py-3 text-sm">
+                <p className="text-xs uppercase tracking-wider text-mist-400">
+                  {t.thread_type.replace(/_/g, " ")}{vendor ? ` · ${vendor.brand_name}` : ""} ·{" "}
+                  {new Date(t.created_at).toLocaleDateString()}
+                </p>
+                <p className="mt-1 truncate text-mist-200">
+                  {last ? `${last.sender_role === "admin" ? "Review team" : last.sender_role}: ${last.body}` : "No messages yet"}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </DashboardShell>
   );
 }

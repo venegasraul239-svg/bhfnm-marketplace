@@ -3,15 +3,16 @@ import Link from "next/link";
 import { SafeImage } from "@/components/SafeImage";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import { getCategory, getProduct, getProducts, getReviews, getVendor } from "@/lib/data";
+import { dataMode, getCategory, getProduct, getProducts, getReviews, getVendor } from "@/lib/data";
+import { BuyBox } from "@/components/BuyBox";
 import { evaluateCheckoutEligibility } from "@/lib/jurisdiction";
-import { formatDate, formatPrice } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { Breadcrumbs, Button, FaqAccordion, SectionHeading, StatusPill } from "@/components/ui";
 import { BadgeRow } from "@/components/TrustBadge";
 import { ProductCard } from "@/components/ProductCard";
 import { JsonLd } from "@/components/JsonLd";
 import { breadcrumbSchema, faqSchema, productSchema } from "@/lib/schema-org";
-import { Bitcoin, Flag, MapPin, ShieldCheck, Star, Timer, Truck } from "lucide-react";
+import { Flag, MapPin, ShieldCheck, Star, Timer, Truck } from "lucide-react";
 import type { PanelResult } from "@/lib/types";
 
 export const revalidate = 300;
@@ -60,7 +61,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const dest = jar.get("bhfnm-dest")?.value?.split("-") ?? ["US", ""];
   const decision = evaluateCheckoutEligibility(product, { country: dest[0], region: dest[1] || undefined });
 
-  const retailVariants = product.variants.filter((v) => !v.wholesaleOnly);
   const c = product.compliance;
   const crumbs = [
     { name: "Marketplace", href: "/" },
@@ -125,31 +125,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <BadgeRow badges={product.badges} />
             </div>
 
-            {/* Variants */}
-            <div className="mt-6 space-y-2">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-mist-300">Options</h2>
-              {retailVariants.map((v, i) => (
-                <label
-                  key={v.id}
-                  className="flex cursor-pointer items-center justify-between rounded-lg border border-ink-600 bg-ink-800/60 px-4 py-3 transition-colors has-[:checked]:border-jade-500"
-                >
-                  <span className="flex items-center gap-3">
-                    <input type="radio" name="variant" defaultChecked={i === 0} className="accent-jade-500" />
-                    <span className="text-sm font-medium text-mist-100">{v.name}</span>
-                    <span className="text-xs text-mist-400">SKU {v.sku}</span>
-                  </span>
-                  <span className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-mist-100">{formatPrice(v.priceCents)}</span>
-                    <StatusPill tone={v.stock > 10 ? "ok" : v.stock > 0 ? "warn" : "bad"}>
-                      {v.stock > 10 ? "In stock" : v.stock > 0 ? `${v.stock} left` : "Out of stock"}
-                    </StatusPill>
-                  </span>
-                </label>
-              ))}
-            </div>
-
             {/* Availability + checkout */}
-            <div className="mt-5 space-y-3">
+            <div className="mt-6 space-y-3">
               {decision.notice && (
                 <p
                   className={`rounded-lg border px-4 py-3 text-sm ${
@@ -161,18 +138,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   {decision.notice}
                 </p>
               )}
-              {decision.eligible ? (
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <Button size="lg" className="flex-1">Add to {vendor.brandName} cart</Button>
-                  <Button size="lg" variant="btc" className="flex-1">
-                    <Bitcoin className="h-4 w-4" aria-hidden /> Checkout with BTC / Lightning
-                  </Button>
-                </div>
-              ) : (
-                <Button size="lg" variant="secondary" disabled className="w-full">
-                  Checkout unavailable for your destination
-                </Button>
-              )}
+              <BuyBox
+                vendorName={vendor.brandName}
+                vendorSlug={vendor.slug}
+                variants={product.variants}
+                purchasable={decision.eligible && dataMode() === "live"}
+                unavailableReason={
+                  !decision.eligible
+                    ? "Checkout is unavailable for your destination — the listing stays visible for research."
+                    : dataMode() !== "live"
+                      ? "This environment shows the sample catalog — purchasing is disabled outside the live marketplace."
+                      : undefined
+                }
+              />
               <p className="text-[11px] leading-relaxed text-mist-400">
                 Single-vendor checkout: each order is fulfilled and shipped by {vendor.brandName} with a
                 platform-generated tracked label. Payment settles via self-hosted BTCPay (on-chain or Lightning).

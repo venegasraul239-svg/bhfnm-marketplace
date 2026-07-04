@@ -1,72 +1,114 @@
+// Buyer order detail — real order, items, payment, and status history.
+
 import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
 import { BUYER_NAV, DashboardShell } from "@/components/DashboardShell";
 import { Button, StatusPill } from "@/components/ui";
-import { Check, Circle } from "lucide-react";
+import { getProfile } from "@/lib/auth";
+import { supabaseService } from "@/lib/supabase";
+import { formatPrice } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Order detail", robots: { index: false } };
+export const metadata: Metadata = { title: "Order details", robots: { index: false } };
+export const dynamic = "force-dynamic";
 
-const TIMELINE = [
-  { label: "BTC invoice settled", detail: "0.000912 BTC on-chain · Jun 29, 10:14", done: true },
-  { label: "Order accepted by seller", detail: "Blue Ridge Hemp Co. · Jun 29, 11:02", done: true },
-  { label: "Label created", detail: "USPS Priority · platform-generated · Jun 29, 14:40", done: true },
-  { label: "Carrier acceptance scan", detail: "Asheville NC distribution center · Jun 30, 09:12", done: true },
-  { label: "In transit", detail: "Last scan: Charlotte NC · Jul 1, 22:30", done: true },
-  { label: "Delivered", detail: "Pending", done: false },
-  { label: "Dispute window (48h)", detail: "Starts at delivery", done: false },
-  { label: "Order complete → review request", detail: "", done: false },
-];
+export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const profile = await getProfile();
+  if (!profile) redirect(`/auth/sign-in?next=/orders/${id}`);
 
-export default function OrderDetailPage() {
+  const db = supabaseService();
+  if (!db) notFound();
+
+  const { data: order } = await db
+    .from("orders")
+    .select(
+      `id, order_number, status, subtotal_cents, total_cents, created_at, destination,
+       dispute_window_ends_at, delivered_at,
+       vendor:vendors(brand_name, slug),
+       items:order_items(title, variant_name, quantity, unit_price_cents),
+       payment:payments(status, method, invoice_id, checkout_link, expires_at, settled_at),
+       events:order_events(from_status, to_status, created_at)`
+    )
+    .eq("id", id)
+    .eq("buyer_id", profile.id) // buyers can only ever load their own orders
+    .maybeSingle();
+
+  if (!order) notFound();
+
+  const vendor = order.vendor as unknown as { brand_name: string; slug: string } | null;
+  const payment = (order.payment as unknown as {
+    status: string; method: string | null; invoice_id: string;
+    checkout_link: string | null; expires_at: string | null; settled_at: string | null;
+  }[] | null)?.[0];
+  const disputeOpen =
+    order.status === "delivered" &&
+    order.dispute_window_ends_at &&
+    new Date(order.dispute_window_ends_at) > new Date();
+
   return (
-    <DashboardShell title="Order BH-2607-4F2A1C" nav={BUYER_NAV} active="/orders">
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+    <DashboardShell title={`Order ${order.order_number}`} nav={BUYER_NAV} active="/orders">
+      <div className="grid gap-4 lg:grid-cols-2">
         <div className="card-surface rounded-card p-6">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-mist-100">Shipping timeline</h2>
-            <StatusPill tone="info">In transit</StatusPill>
+            <h2 className="font-semibold text-mist-100">{vendor?.brand_name}</h2>
+            <StatusPill tone={["delivered", "completed"].includes(order.status) ? "ok" : "info"}>
+              {order.status.replace(/_/g, " ")}
+            </StatusPill>
           </div>
-          <ol className="mt-6 space-y-5">
-            {TIMELINE.map((t) => (
-              <li key={t.label} className="flex gap-3">
-                {t.done ? (
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-jade-500/20">
-                    <Check className="h-3 w-3 text-jade-400" aria-hidden />
-                  </span>
-                ) : (
-                  <Circle className="mt-1 h-4 w-4 shrink-0 text-ink-600" aria-hidden />
-                )}
-                <div>
-                  <p className={`text-sm font-medium ${t.done ? "text-mist-100" : "text-mist-400"}`}>{t.label}</p>
-                  {t.detail && <p className="text-xs text-mist-400">{t.detail}</p>}
-                </div>
+          <ul className="mt-4 divide-y divide-ink-700 text-sm">
+            {(order.items ?? []).map((i, n) => (
+              <li key={n} className="flex justify-between py-2">
+                <span className="text-mist-200">{i.quantity}× {i.title} <span className="text-mist-400">({i.variant_name})</span></span>
+                <span className="text-mist-100">{formatPrice(i.unit_price_cents * i.quantity)}</span>
               </li>
             ))}
-          </ol>
+          </ul>
+          <p className="mt-3 flex justify-between border-t border-ink-700 pt-3 text-sm">
+            <span className="text-mist-400">Total</span>
+            <span className="font-bold text-mist-100">{formatPrice(order.total_cents)}</span>
+          </p>
         </div>
-        <div className="space-y-4">
-          <div className="card-surface rounded-card p-6">
-            <h2 className="font-semibold text-mist-100">Items</h2>
-            <ul className="mt-3 space-y-2 text-sm text-mist-300">
-              <li className="flex justify-between"><span>2× Appalachian Haze 7g</span><span>$84.00</span></li>
-            </ul>
-            <div className="mt-3 border-t border-ink-700 pt-3 text-sm">
-              <div className="flex justify-between text-mist-400"><span>Shipping</span><span>Included</span></div>
-              <div className="mt-1 flex justify-between font-semibold text-mist-100"><span>Total</span><span>$84.00</span></div>
-              <p className="mt-2 text-xs text-mist-400">Paid via BTCPay invoice · batch AH-2605 COA snapshotted to this order.</p>
+
+        <div className="card-surface rounded-card p-6">
+          <h2 className="font-semibold text-mist-100">Payment</h2>
+          {payment ? (
+            <dl className="mt-4 space-y-2 text-sm">
+              <div className="flex justify-between"><dt className="text-mist-400">Status</dt><dd className="text-mist-200">{payment.status.replace(/_/g, " ")}</dd></div>
+              {payment.method && <div className="flex justify-between"><dt className="text-mist-400">Method</dt><dd className="text-mist-200">{payment.method === "lightning" ? "Lightning" : "Bitcoin on-chain"}</dd></div>}
+              <div className="flex justify-between"><dt className="text-mist-400">Invoice</dt><dd className="font-mono text-xs text-mist-300">{payment.invoice_id}</dd></div>
+              {payment.settled_at && <div className="flex justify-between"><dt className="text-mist-400">Settled</dt><dd className="text-mist-200">{new Date(payment.settled_at).toLocaleString()}</dd></div>}
+            </dl>
+          ) : (
+            <p className="mt-3 text-sm text-mist-400">No payment record.</p>
+          )}
+          {order.status === "pending_payment" && payment?.checkout_link && (
+            <div className="mt-4">
+              <Button href={payment.checkout_link} variant="btc" size="sm">Open Bitcoin invoice</Button>
+              <p className="mt-2 text-[11px] text-mist-400">Invoices expire after 15 minutes; an expired order releases automatically.</p>
             </div>
-          </div>
-          <div className="card-surface rounded-card p-6">
-            <h2 className="font-semibold text-mist-100">Need help?</h2>
-            <div className="mt-4 flex flex-col gap-2">
-              <Button variant="secondary" size="sm" href="/messages">Message seller</Button>
-              <Button variant="ghost" size="sm" href="/disputes">Open a dispute (after delivery)</Button>
-            </div>
-            <p className="mt-3 text-xs leading-relaxed text-mist-400">
-              Dispute eligibility: damaged, wrong, materially different, missing items, or verified shipment failure —
-              within 48 hours of delivery.
-            </p>
-          </div>
+          )}
         </div>
+      </div>
+
+      <div className="card-surface mt-4 rounded-card p-6">
+        <h2 className="font-semibold text-mist-100">Timeline</h2>
+        <ul className="mt-4 space-y-2 text-sm">
+          <li className="text-mist-300">Order created · {new Date(order.created_at).toLocaleString()}</li>
+          {(order.events ?? []).map((e, n) => (
+            <li key={n} className="text-mist-300">
+              {e.from_status ? `${e.from_status} → ` : ""}{e.to_status.replace(/_/g, " ")} · {new Date(e.created_at).toLocaleString()}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 text-[11px] leading-relaxed text-mist-400">
+          Shipping events appear here once the vendor generates the platform tracking label. After delivery you have
+          48 hours to report damaged, wrong, missing, or materially different items.
+        </p>
+        {disputeOpen && (
+          <div className="mt-4">
+            <Button href="/disputes" variant="secondary" size="sm">Report an issue with this order</Button>
+          </div>
+        )}
       </div>
     </DashboardShell>
   );
