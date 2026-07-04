@@ -4,8 +4,11 @@
 // syncs to /api/vendor/applications when a backend is configured. Submission
 // always requires the server — there is no fake approval path.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
+import { supabaseBrowser } from "@/lib/supabase-browser";
 import { CheckCircle2, CloudUpload, Save } from "lucide-react";
 
 const STORAGE_KEY = "bhfnm-vendor-application-v1";
@@ -79,11 +82,15 @@ function CheckField({
 }
 
 export function ApplyWizard() {
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<AppData>({});
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [syncedAt, setSyncedAt] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [submitState, setSubmitState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const hydrated = useRef(false);
 
   useEffect(() => {
     try {
@@ -94,8 +101,19 @@ export function ApplyWizard() {
         setStep(parsed.step ?? 0);
       }
     } catch { /* fresh start */ }
+    hydrated.current = true;
+
+    const sb = supabaseBrowser();
+    if (!sb) {
+      setSignedIn(false);
+      return;
+    }
+    sb.auth.getUser().then(({ data: u }) => setSignedIn(Boolean(u.user)));
+    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => setSignedIn(Boolean(s)));
+    return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Local autosave (always) — survives sign-in round-trips and network loss.
   useEffect(() => {
     const t = setTimeout(() => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, step }));
@@ -103,6 +121,21 @@ export function ApplyWizard() {
     }, 400);
     return () => clearTimeout(t);
   }, [data, step]);
+
+  // Server autosave (signed-in only) — identity is attached server-side.
+  useEffect(() => {
+    if (!signedIn || !hydrated.current || Object.keys(data).length === 0) return;
+    const t = setTimeout(() => {
+      fetch("/marketplace/api/vendor/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ steps: data }),
+      })
+        .then((r) => r.ok && setSyncedAt(new Date().toLocaleTimeString()))
+        .catch(() => undefined);
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [data, signedIn]);
 
   function setField(s: number, name: string, value: string | boolean) {
     setData((d) => ({ ...d, [s]: { ...d[s], [name]: value } }));
@@ -128,13 +161,18 @@ export function ApplyWizard() {
   }
 
   async function submit() {
+    if (!signedIn) {
+      setErrorMsg("Sign in (or create an account) to submit — your draft stays saved in this browser.");
+      setSubmitState("error");
+      return;
+    }
     setSubmitState("sending");
     setErrorMsg(null);
     try {
       const res = await fetch("/marketplace/api/vendor/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ steps: data, submittedAt: new Date().toISOString() }),
+        body: JSON.stringify({ steps: data, submit: true }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -144,6 +182,7 @@ export function ApplyWizard() {
       }
       localStorage.removeItem(STORAGE_KEY);
       setSubmitState("done");
+      router.push("/vendors/apply/status");
     } catch {
       setErrorMsg("Network error. Your progress is saved locally — please retry.");
       setSubmitState("error");
@@ -190,12 +229,21 @@ export function ApplyWizard() {
         {savedAt && (
           <li className="mt-4 hidden items-center gap-1.5 text-[11px] text-mist-400 lg:flex">
             <Save className="h-3 w-3" aria-hidden /> Draft saved {savedAt}
+            {syncedAt && <span className="text-jade-400">· synced {syncedAt}</span>}
           </li>
         )}
       </ol>
 
       {/* Step body */}
       <div className="card-surface rounded-card p-6 sm:p-8">
+        {signedIn === false && (
+          <p className="mb-5 rounded-lg border border-amber-glow/30 bg-amber-glow/10 px-4 py-3 text-sm text-amber-glow">
+            You&apos;re drafting as a guest — progress is saved in this browser only.{" "}
+            <Link href="/auth/sign-in?next=/vendors/apply" className="font-semibold underline">Sign in</Link> or{" "}
+            <Link href="/auth/sign-up?next=/vendors/apply" className="font-semibold underline">create an account</Link>{" "}
+            to save to your application record and submit.
+          </p>
+        )}
         <h2 className="font-display text-lg font-bold text-mist-100">Step {step + 1}: {STEPS[step]}</h2>
 
         {step === 0 && (
