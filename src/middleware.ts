@@ -4,7 +4,7 @@
 // 3. Coarse auth gate for protected sections — role checks happen server-side
 //    in layouts/handlers (lib/auth.ts); middleware only requires a session.
 
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Paths are matched WITHOUT the /marketplace basePath inside middleware.
@@ -42,7 +42,7 @@ export async function middleware(req: NextRequest) {
     const supabase = createServerClient(url, anon, {
       cookies: {
         getAll: () => req.cookies.getAll(),
-        setAll: (cookiesToSet) => {
+        setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
           res = NextResponse.next({ request: req });
           cookiesToSet.forEach(({ name, value, options }) => res.cookies.set(name, value, options));
