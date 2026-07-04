@@ -1,26 +1,83 @@
-import { DashboardShell, QueueTable, VENDOR_NAV } from "@/components/DashboardShell";
-import { Button, StatusPill } from "@/components/ui";
+// Vendor compliance — real COA records for this vendor's products.
 
-export default function VendorCompliance() {
+import { DashboardShell, VENDOR_NAV } from "@/components/DashboardShell";
+import { EmptyState, StatusPill } from "@/components/ui";
+import { getOwnVendor } from "@/lib/auth";
+import { supabaseService } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
+
+const TONE: Record<string, "ok" | "warn" | "bad" | "neutral" | "info"> = {
+  verified: "ok", expiring_soon: "warn", expired: "bad", rejected: "bad", submitted: "info",
+};
+
+export default async function VendorCompliance() {
+  const db = supabaseService();
+  const vendor = await getOwnVendor(db);
+
+  if (!db || !vendor) {
+    return (
+      <DashboardShell title="Compliance" nav={VENDOR_NAV} active="/vendor-dashboard/compliance">
+        <EmptyState title="No approved store on this account" />
+      </DashboardShell>
+    );
+  }
+
+  const { data: products } = await db
+    .from("products")
+    .select(
+      `id, title, status,
+       compliance:compliance_records(id, batch_number, lab_name, coa_issue_date, retest_date, status, admin_notes)`
+    )
+    .eq("vendor_id", vendor.id)
+    .order("updated_at", { ascending: false });
+
+  const records = (products ?? []).flatMap((p) =>
+    (p.compliance ?? []).map((c) => ({ ...c, productTitle: p.title }))
+  );
+
   return (
-    <DashboardShell title="Compliance" nav={VENDOR_NAV} active="/vendor-dashboard/compliance">
+    <DashboardShell title="Compliance" nav={VENDOR_NAV} active="/vendor-dashboard/compliance" badge={vendor.brand_name}>
       <p className="mb-6 text-sm text-mist-400">
-        Every batch needs a structured COA record: file upload (hash-verified), lab details, potency values, and
-        safety panels. Verified records power your public badges; expired COAs remove them automatically.
+        Every batch needs a structured COA record. Badges (Verified COA, Batch Linked, Recently Tested) appear only
+        after admin verification, and disappear automatically past the retest date.
       </p>
-      <QueueTable
-        headers={["Batch", "Product", "Lab", "Issued", "Retest", "Status", "Action"]}
-        rows={[
-          ["AH-2605", "Appalachian Haze CBD Flower", "Foothills Analytical", "May 18, 2026", "May 18, 2027", <StatusPill key="s" tone="ok">Verified</StatusPill>, <Button key="a" variant="ghost" size="sm">View</Button>],
-          ["WC-2604", "White CBG Flower", "Foothills Analytical", "Apr 30, 2026", "Apr 30, 2027", <StatusPill key="s" tone="warn">Retest in 28d</StatusPill>, <Button key="a" size="sm">Upload new COA</Button>],
-          ["MM-2606", "Mountain Mist Pre-Rolls", "Foothills Analytical", "Jun 12, 2026", "—", <StatusPill key="s" tone="info">Under review</StatusPill>, <Button key="a" variant="ghost" size="sm">Details</Button>],
-        ]}
-      />
-      <div className="mt-8 rounded-card border border-ink-700 bg-ink-900/40 p-6 text-sm leading-relaxed text-mist-400">
-        <h2 className="mb-2 font-semibold text-mist-100">What reviewers check</h2>
-        Batch number matches the COA document · lab exists and issues this panel type · potency values match the file ·
-        safety panels present for the category (vapes/edibles need solvents) · issue date fresh · file hash matches upload.
-      </div>
+      {records.length === 0 ? (
+        <EmptyState
+          title="No COA records yet"
+          sub="Add structured COA data when creating a listing — records and their verification status appear here."
+        />
+      ) : (
+        <div className="overflow-x-auto rounded-card border border-ink-700">
+          <table className="w-full text-sm">
+            <thead className="bg-ink-900 text-left text-xs uppercase tracking-wider text-mist-400">
+              <tr>
+                <th className="px-4 py-3">Product</th>
+                <th className="px-4 py-3">Batch</th>
+                <th className="px-4 py-3">Lab</th>
+                <th className="px-4 py-3">Issued</th>
+                <th className="px-4 py-3">Retest</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-ink-700">
+              {records.map((r) => (
+                <tr key={r.id}>
+                  <td className="px-4 py-3 font-medium text-mist-100">{r.productTitle}</td>
+                  <td className="px-4 py-3 text-mist-300">{r.batch_number}</td>
+                  <td className="px-4 py-3 text-mist-300">{r.lab_name}</td>
+                  <td className="px-4 py-3 text-mist-300">{r.coa_issue_date}</td>
+                  <td className="px-4 py-3 text-mist-300">{r.retest_date ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    <StatusPill tone={TONE[r.status] ?? "neutral"}>{r.status.replace(/_/g, " ")}</StatusPill>
+                    {r.admin_notes && <p className="mt-1 text-xs text-amber-glow">{r.admin_notes}</p>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </DashboardShell>
   );
 }

@@ -1,22 +1,60 @@
-import { DashboardShell, QueueTable, VENDOR_NAV } from "@/components/DashboardShell";
-import { Button, StatusPill } from "@/components/ui";
+// Vendor inbox — real threads only; sending UI arrives with the messaging
+// milestone (threads created by the application/dispute flows are visible).
 
-export default function VendorMessages() {
+import { DashboardShell, VENDOR_NAV } from "@/components/DashboardShell";
+import { EmptyState } from "@/components/ui";
+import { getOwnVendor } from "@/lib/auth";
+import { supabaseService } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
+
+export default async function VendorMessages() {
+  const db = supabaseService();
+  const vendor = await getOwnVendor(db);
+
+  if (!db || !vendor) {
+    return (
+      <DashboardShell title="Messages" nav={VENDOR_NAV} active="/vendor-dashboard/messages">
+        <EmptyState title="No approved store on this account" />
+      </DashboardShell>
+    );
+  }
+
+  const { data: threads } = await db
+    .from("message_threads")
+    .select("id, thread_type, created_at, messages(body, sender_role, created_at)")
+    .eq("vendor_id", vendor.id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  const rows = threads ?? [];
+
   return (
-    <DashboardShell title="Messages" nav={VENDOR_NAV} active="/vendor-dashboard/messages">
+    <DashboardShell title="Messages" nav={VENDOR_NAV} active="/vendor-dashboard/messages" badge={vendor.brand_name}>
       <p className="mb-6 text-sm text-mist-400">
-        All buyer communication stays in the marketplace inbox. Messages are immutable, timestamped, and monitored
-        for off-platform contact or payment solicitation — sharing emails, phone numbers, wallet addresses, or
-        Telegram/WhatsApp handles triggers enforcement.
+        All buyer communication stays in this inbox — off-platform contact (email, phone, wallets, chat apps) is
+        detected and flagged. Replying from this view ships with the messaging milestone; threads shown are real.
       </p>
-      <QueueTable
-        headers={["Thread", "Linked to", "Last message", "Status", ""]}
-        rows={[
-          ["Marcus T.", "Order BH-2607-4F2A1C", "“Any update on shipping?” · 2h ago", <StatusPill key="s" tone="warn">Needs reply</StatusPill>, <Button key="a" size="sm">Open</Button>],
-          ["Dana R.", "Product inquiry: Appalachian Haze", "“Is a fresh batch coming?” · 1d ago", <StatusPill key="s" tone="neutral">Replied</StatusPill>, <Button key="a" variant="ghost" size="sm">Open</Button>],
-          ["Priya K.", "Order BH-2606-77CD02", "“Thanks, arrived safely!” · 3d ago", <StatusPill key="s" tone="ok">Resolved</StatusPill>, <Button key="a" variant="ghost" size="sm">Open</Button>],
-        ]}
-      />
+      {rows.length === 0 ? (
+        <EmptyState
+          title="No conversations yet"
+          sub="Order questions and product inquiries open threads here automatically."
+        />
+      ) : (
+        <ul className="space-y-2">
+          {rows.map((t) => {
+            const last = (t.messages ?? []).slice(-1)[0];
+            return (
+              <li key={t.id} className="card-surface rounded-card px-4 py-3 text-sm">
+                <p className="text-xs uppercase tracking-wider text-mist-400">
+                  {t.thread_type.replace(/_/g, " ")} · {new Date(t.created_at).toLocaleDateString()}
+                </p>
+                <p className="mt-1 truncate text-mist-200">{last ? `${last.sender_role}: ${last.body}` : "No messages yet"}</p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </DashboardShell>
   );
 }
