@@ -154,7 +154,7 @@ export async function getReviews(filter: { product?: string; vendor?: string }):
       `id, rating_overall, rating_accuracy, rating_packaging, rating_shipping,
        rating_communication, title, body, verified_purchase, created_at,
        product:products!inner(slug), vendor:vendors!inner(slug),
-       buyer:profiles(display_name)`
+       buyer:profiles!reviews_buyer_id_fkey(display_name)`
     )
     .eq("status", "published")
     .order("created_at", { ascending: false })

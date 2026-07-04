@@ -32,7 +32,7 @@ export default async function AdminVendorsPage() {
   const { data: apps } = db
     ? await db
         .from("vendor_applications")
-        .select("id, status, submitted_at, created_at, steps, applicant:profiles(email)")
+        .select("id, status, submitted_at, created_at, steps, applicant:profiles!vendor_applications_applicant_id_fkey(email)")
         .in("status", ["submitted", "resubmitted", "under_review", "info_requested"])
         .order("submitted_at", { ascending: true })
     : { data: null };

@@ -19,15 +19,24 @@ export default async function VendorWholesale() {
     );
   }
 
-  const [{ data: access }, { data: inquiries }] = await Promise.all([
+  // wholesale_profiles has no direct FK to wholesale_access — fetch it
+  // separately by buyer id (a PostgREST embed here fails with PGRST200).
+  const [{ data: accessRows }, { data: inquiries }] = await Promise.all([
     db.from("wholesale_access")
-      .select("buyer_id, status, decided_at, buyer:profiles(email), profile:wholesale_profiles(company_name, business_type)")
+      .select("buyer_id, status, decided_at, buyer:profiles(email)")
       .eq("vendor_id", vendor.id),
     db.from("wholesale_inquiries")
       .select("id, inquiry_type, message, status, created_at, buyer:profiles(email)")
       .eq("vendor_id", vendor.id)
       .order("created_at", { ascending: false }),
   ]);
+
+  const buyerIds = (accessRows ?? []).map((a) => a.buyer_id);
+  const { data: buyerProfiles } = buyerIds.length
+    ? await db.from("wholesale_profiles").select("profile_id, company_name, business_type").in("profile_id", buyerIds)
+    : { data: [] as { profile_id: string; company_name: string; business_type: string | null }[] };
+  const profileMap = new Map((buyerProfiles ?? []).map((p) => [p.profile_id, p]));
+  const access = (accessRows ?? []).map((a) => ({ ...a, profile: profileMap.get(a.buyer_id) ?? null }));
 
   return (
     <DashboardShell title="Wholesale" nav={VENDOR_NAV} active="/vendor-dashboard/wholesale" badge={vendor.brand_name}>

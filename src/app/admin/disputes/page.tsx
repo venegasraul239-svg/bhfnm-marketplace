@@ -15,7 +15,7 @@ export default async function AdminDisputes() {
         .from("disputes")
         .select(
           `id, reason, description, status, refund_amount_cents, created_at,
-           order:orders(order_number, total_cents), vendor:vendors(brand_name), buyer:profiles(email)`
+           order:orders(order_number, total_cents), vendor:vendors(brand_name), buyer:profiles!disputes_buyer_id_fkey(email)`
         )
         .order("created_at", { ascending: false })
     : { data: null };
