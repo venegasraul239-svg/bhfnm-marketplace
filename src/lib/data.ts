@@ -195,13 +195,86 @@ export async function getReviews(filter: { product?: string; vendor?: string }):
 }
 
 export async function searchProducts(q: string): Promise<Product[]> {
-  const needle = q.toLowerCase();
-  return (await getProducts()).filter(
-    (p) =>
-      p.title.toLowerCase().includes(needle) ||
-      p.description.toLowerCase().includes(needle) ||
-      p.cannabinoidType.includes(needle)
+  const query = q.trim().slice(0, 120);
+  if (!query) return [];
+  const mode = dataMode();
+  if (mode === "empty") return [];
+  if (mode === "demo") {
+    const needle = query.toLowerCase();
+    return (await getProducts()).filter(
+      (p) =>
+        p.title.toLowerCase().includes(needle) ||
+        p.description.toLowerCase().includes(needle) ||
+        p.cannabinoidType.includes(needle)
+    );
+  }
+
+  const db = supabaseAnon()!;
+
+  // Ranked Postgres FTS (migration 0004): weighted tsvector + trigram
+  // similarity, verified-COA and in-stock boosts, RLS-scoped to live products.
+  const { data: ranked, error } = await db.rpc("search_products", { q: query, max_results: 40 });
+  if (!error && ranked) {
+    const ids = (ranked as { id: string; rank: number }[]).map((r) => r.id);
+    return hydrateProductsByIds(db, ids);
+  }
+  if (error) console.error("[search] FTS rpc unavailable, using ILIKE fallback:", error.message);
+
+  // Fallback while 0004 isn't applied yet: plain ILIKE match (unranked).
+  const safe = query.replace(/[%,()]/g, " ").trim();
+  if (!safe) return [];
+  const { data } = await db
+    .from("products")
+    .select(PRODUCT_SELECT)
+    .eq("status", "live")
+    .or(`title.ilike.%${safe}%,short_description.ilike.%${safe}%,description.ilike.%${safe}%`)
+    .limit(40);
+  const rows = ((data ?? []) as unknown as ProductRow[]).filter((r) => r.vendor?.status === "active");
+  const aggregates = await reviewAggregates(db, rows.map((r) => r.id));
+  return rows.map((r) => mapProduct(r, aggregates.get(r.id)));
+}
+
+/** Hydrate full product cards for ranked ids, preserving rank order. */
+async function hydrateProductsByIds(db: Db, ids: string[]): Promise<Product[]> {
+  if (!ids.length) return [];
+  const { data } = await db.from("products").select(PRODUCT_SELECT).in("id", ids);
+  const rows = ((data ?? []) as unknown as ProductRow[]).filter(
+    (r) => r.vendor && r.vendor.status === "active"
   );
+  const aggregates = await reviewAggregates(db, rows.map((r) => r.id));
+  const bySlot = new Map(ids.map((id, i) => [id, i]));
+  return rows
+    .sort((a, b) => (bySlot.get(a.id) ?? 0) - (bySlot.get(b.id) ?? 0))
+    .map((r) => mapProduct(r, aggregates.get(r.id)));
+}
+
+/** Store search: brand name (fuzzy-ish via ILIKE) + about/SEO text. */
+export async function searchVendors(q: string): Promise<Vendor[]> {
+  const query = q.trim().slice(0, 120);
+  if (!query) return [];
+  const mode = dataMode();
+  if (mode === "empty") return [];
+  if (mode === "demo") {
+    const needle = query.toLowerCase();
+    return VENDORS.filter(
+      (v) => v.brandName.toLowerCase().includes(needle) || v.about.toLowerCase().includes(needle)
+    );
+  }
+
+  const db = supabaseAnon()!;
+  const safe = query.replace(/[%,()]/g, " ").trim();
+  if (!safe) return [];
+  const { data, error } = await db
+    .from("vendors")
+    .select(VENDOR_SELECT)
+    .eq("status", "active")
+    .or(`brand_name.ilike.%${safe}%,about.ilike.%${safe}%,seo_description.ilike.%${safe}%`)
+    .limit(8);
+  if (error) console.error("[search] vendor search failed:", error.message);
+  const rows = (data ?? []) as unknown as VendorRow[];
+  const counts = await productCounts(db, rows.map((r) => r.id));
+  const ratings = await vendorReviewAggregates(db, rows.map((r) => r.id));
+  return rows.map((r) => mapVendor(r, counts.get(r.id) ?? 0, ratings.get(r.id)));
 }
 
 // ================================================================ internals
