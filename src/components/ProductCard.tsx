@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { SafeImage } from "./SafeImage";
 import type { Product, Vendor } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 import { BadgeRow } from "./TrustBadge";
@@ -25,7 +25,7 @@ export function ProductCard({
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-ink-800">
         {img && (
-          <Image
+          <SafeImage
             src={img.url}
             alt={img.alt}
             fill

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { SafeImage } from "@/components/SafeImage";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { getCategory, getProduct, getProducts, getReviews, getVendor } from "@/lib/data";
@@ -88,14 +88,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="space-y-3">
             <div className="relative aspect-[4/3] overflow-hidden rounded-card border border-ink-700 bg-ink-800">
               {product.images[0] && (
-                <Image src={product.images[0].url} alt={product.images[0].alt} fill priority sizes="(max-width:1024px) 100vw, 50vw" className="object-cover" />
+                <SafeImage src={product.images[0].url} alt={product.images[0].alt} fill priority sizes="(max-width:1024px) 100vw, 50vw" className="object-cover" />
               )}
             </div>
             {product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-3">
                 {product.images.slice(1).map((img, i) => (
                   <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-ink-700 bg-ink-800">
-                    <Image src={img.url} alt={img.alt} fill sizes="12vw" className="object-cover" />
+                    <SafeImage src={img.url} alt={img.alt} fill sizes="12vw" className="object-cover" />
                   </div>
                 ))}
               </div>

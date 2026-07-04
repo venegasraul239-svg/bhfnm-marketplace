@@ -86,11 +86,16 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
             </div>
           </div>
 
+          {/* Only metrics backed by real records render — never fabricated stats. */}
           <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-5">
-            <Stat value={String(products.length || vendor.productCount)} label="Live products" />
-            <Stat value={`★ ${vendor.ratingAvg.toFixed(1)}`} label={`${vendor.ratingCount} reviews`} />
-            <Stat value={`${Math.round(vendor.onTimeShipRate * 100)}%`} label="On-time shipping" />
-            <Stat value={`~${vendor.responseHours}h`} label="Response time" />
+            <Stat value={String(products.length)} label="Live products" />
+            {vendor.ratingCount > 0 && (
+              <Stat value={`★ ${vendor.ratingAvg.toFixed(1)}`} label={`${vendor.ratingCount} reviews`} />
+            )}
+            {vendor.onTimeShipRate > 0 && (
+              <Stat value={`${Math.round(vendor.onTimeShipRate * 100)}%`} label="On-time shipping" />
+            )}
+            {vendor.responseHours > 0 && <Stat value={`~${vendor.responseHours}h`} label="Response time" />}
             <Stat value={`${vendor.handlingDaysMin}–${vendor.handlingDaysMax}d`} label="Handling time" />
           </div>
         </div>

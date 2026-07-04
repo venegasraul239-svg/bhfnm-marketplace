@@ -60,8 +60,10 @@ export default async function HomePage() {
           </form>
 
           <div className="mt-12 grid max-w-2xl grid-cols-2 gap-8 sm:grid-cols-4">
-            <Stat value={`${vendors.length}+`} label="Verified vendors" />
-            <Stat value={`${products.filter((p) => p.compliance?.status === "verified").length}`} label="Verified COAs live" />
+            {vendors.length > 0 && <Stat value={`${vendors.length}`} label="Verified vendors" />}
+            {products.some((p) => p.compliance) && (
+              <Stat value={`${products.filter((p) => p.compliance).length}`} label="Verified COAs live" />
+            )}
             <Stat value="100%" label="Tracked shipments" />
             <Stat value="₿ + ⚡" label="On-chain & Lightning" />
           </div>
@@ -86,17 +88,33 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Trending products */}
+      {/* Trending products — or truthful launch state */}
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
         <SectionHeading eyebrow="Trending" title="Recently verified products" />
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {trending.map((p) => (
-            <ProductCard key={p.id} product={p} vendor={vendorMap.get(p.vendorSlug)} />
-          ))}
-        </div>
+        {trending.length > 0 ? (
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {trending.map((p) => (
+              <ProductCard key={p.id} product={p} vendor={vendorMap.get(p.vendorSlug)} />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-8 rounded-card border border-dashed border-ink-600 px-6 py-14 text-center">
+            <p className="font-display text-lg font-bold text-mist-100">The marketplace is launching</p>
+            <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-mist-400">
+              Verified sellers are completing onboarding and compliance review now. Products appear
+              here only after their batch-linked COAs pass admin verification — nothing is listed
+              before it is checked.
+            </p>
+            <div className="mt-6 flex justify-center gap-3">
+              <Button href="/vendors/apply">Apply to sell</Button>
+              <Button href="https://buyhempflowernearme.com/" variant="secondary">Explore the education hub</Button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Featured brands */}
+      {vendors.length > 0 && (
       <section className="border-y border-ink-800 bg-ink-900/40">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <SectionHeading
@@ -123,6 +141,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Trust pillars */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
@@ -169,6 +188,7 @@ export default async function HomePage() {
       </section>
 
       {/* Wholesale strip */}
+      {wholesaleVendors.length > 0 && (
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <SectionHeading
           eyebrow="B2B"
@@ -190,6 +210,7 @@ export default async function HomePage() {
           <Button href="/categories/wholesale" variant="secondary">Browse all wholesale listings</Button>
         </div>
       </section>
+      )}
 
       {/* Seller CTA */}
       <section className="border-y border-ink-800 bg-ink-900/40">
