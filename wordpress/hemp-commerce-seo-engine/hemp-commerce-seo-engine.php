@@ -1,8 +1,8 @@
-<?php
+﻿<?php
 /**
  * Plugin Name: Hemp Commerce SEO Engine
  * Description: SEO architecture engine for hemp/cannabinoid WooCommerce sites: seeded categories, tags, state pages, internal linking, schema, and product SEO fields. No products are created.
- * Version: 0.4.0
+ * Version: 0.4.1
  * Author: OpenAI
  * Text Domain: hemp-commerce-seo-engine
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('HSE_VERSION', '0.4.0');
+define('HSE_VERSION', '0.4.1');
 define('HSE_PATH', plugin_dir_path(__FILE__));
 define('HSE_URL', plugin_dir_url(__FILE__));
 

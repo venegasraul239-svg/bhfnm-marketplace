@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AccountMenu } from "./AccountMenu";
 import { SearchBar } from "./SearchBar";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
   { label: "Hemp Flower", href: "/categories/hemp-flower" },
@@ -40,6 +41,7 @@ export function SiteHeader() {
           >
             Sell on BHFNM
           </Link>
+          <ThemeToggle />
           <AccountMenu />
         </div>
       </div>

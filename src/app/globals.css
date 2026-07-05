@@ -26,6 +26,33 @@
   --radius-card: 0.875rem;
 }
 
+/* Light theme (default): same semantic tokens, inverted values. The dark
+   palette above remains the [data-theme="dark"] experience via the toggle. */
+[data-theme="light"] {
+  --color-ink-950: #f6f9f8;   /* page base */
+  --color-ink-900: #ffffff;   /* card bottom */
+  --color-ink-850: #ffffff;   /* card top */
+  --color-ink-800: #eef2f0;   /* inputs / wells */
+  --color-ink-700: #dbe4e0;   /* borders */
+  --color-ink-600: #c3d0ca;   /* strong borders */
+  --color-mist-400: #5c6d66;  /* muted text */
+  --color-mist-300: #42544d;
+  --color-mist-200: #273630;  /* body text */
+  --color-mist-100: #0f1c17;  /* headings */
+  --color-jade-600: #047857;
+  --color-jade-500: #059669;
+  --color-jade-400: #0b8a63;
+  --color-jade-300: #056d4f;  /* accent text needs depth on light */
+  --color-amber-glow: #9a6a10;
+  --color-signal-red: #c03434;
+  --color-btc: #b36b0e;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 html {
   scroll-behavior: smooth;
 }

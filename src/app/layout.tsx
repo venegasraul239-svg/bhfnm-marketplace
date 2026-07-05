@@ -26,7 +26,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${display.variable}`}>
+    <html lang="en" data-theme="light" className={`${inter.variable} ${display.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Apply stored theme before paint; light is the default. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('bhfnm-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(e){}",
+          }}
+        />
+      </head>
       <body className="flex min-h-screen flex-col">
         <JsonLd data={[organizationSchema(), websiteSchema()]} />
         <AgeGate />

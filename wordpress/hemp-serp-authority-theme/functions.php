@@ -1,9 +1,9 @@
-<?php
+﻿<?php
 if (!defined('ABSPATH')) {
     exit;
 }
 
-define('HSA_VERSION', '0.4.0');
+define('HSA_VERSION', '0.4.1');
 define('HSA_MARKETPLACE_URL', home_url('/marketplace'));
 
 function hsa_setup() {
@@ -1274,7 +1274,7 @@ function hsa_related_category_panel() {
 add_action('woocommerce_after_single_product_summary', 'hsa_related_category_panel', 12);
 
 /* ==========================================================================
-   v0.4 — BHFNM Marketplace cross-linking
+   v0.4 â€” BHFNM Marketplace cross-linking
    The education hub is the SEO authority; the marketplace is the commerce
    layer. These helpers route intent-matched visitors into /marketplace.
    ========================================================================== */
@@ -1316,7 +1316,7 @@ function hsa_marketplace_target() {
 }
 
 /**
- * Marketplace CTA band — rendered above the footer on public pages.
+ * Marketplace CTA band â€” rendered above the footer on public pages.
  * Deep-links into the matching marketplace category where one exists.
  */
 function hsa_render_marketplace_band() {
@@ -1345,3 +1345,60 @@ function hsa_render_marketplace_band() {
 if (!function_exists('is_cart')) { function is_cart() { return false; } }
 if (!function_exists('is_checkout')) { function is_checkout() { return false; } }
 if (!function_exists('is_account_page')) { function is_account_page() { return false; } }
+
+/* ==========================================================================
+   v0.4.1 — light default + dark mode toggle (shared with the marketplace:
+   localStorage key "bhfnm-theme"; dark loads assets/dark.css on top).
+   ========================================================================== */
+
+function hsa_theme_mode_head() {
+    $dark_css = esc_url(get_template_directory_uri() . '/assets/dark.css') . '?ver=' . HSA_VERSION;
+    ?>
+<script>
+(function () {
+    var DARK_HREF = <?php echo wp_json_encode($dark_css); ?>;
+    function setDark(on) {
+        var existing = document.getElementById('hsa-dark-css');
+        if (on) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            if (!existing) {
+                var l = document.createElement('link');
+                l.id = 'hsa-dark-css';
+                l.rel = 'stylesheet';
+                l.href = DARK_HREF;
+                document.head.appendChild(l);
+            }
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            if (existing) { existing.parentNode.removeChild(existing); }
+        }
+    }
+    window.hsaSetDark = setDark;
+    window.hsaToggleTheme = function () {
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        setDark(!dark);
+        try { localStorage.setItem('bhfnm-theme', dark ? 'light' : 'dark'); } catch (e) {}
+    };
+    try {
+        if (localStorage.getItem('bhfnm-theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            // Blocking write so dark paints first — no light flash.
+            document.write('<link rel="stylesheet" id="hsa-dark-css" href="' + DARK_HREF + '">');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+        }
+    } catch (e) {}
+}());
+</script>
+    <?php
+}
+add_action('wp_head', 'hsa_theme_mode_head', 0);
+
+function hsa_render_theme_toggle() {
+    ?>
+    <button type="button" class="hsa-theme-toggle" onclick="hsaToggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <span class="hsa-theme-toggle__moon" aria-hidden="true">&#9789;</span>
+        <span class="hsa-theme-toggle__sun" aria-hidden="true">&#9728;</span>
+    </button>
+    <?php
+}

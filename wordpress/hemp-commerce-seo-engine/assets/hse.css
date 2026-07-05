@@ -1,8 +1,4 @@
-/* Hemp Commerce SEO Engine — frontend components.
-   v0.4: BHFNM Marketplace dark design system (ink surfaces, jade accents).
-   Admin-screen styles at the bottom stay light to match wp-admin. */
-
-.hse-grid {
+﻿.hse-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1rem;
@@ -13,45 +9,39 @@
     display: block;
     min-height: 100%;
     text-decoration: none;
-    border: 1px solid rgba(163, 190, 181, 0.14);
-    border-radius: 16px;
+    border: 1px solid rgba(20, 37, 33, 0.1);
+    border-radius: 20px;
     padding: 1.1rem;
-    background: linear-gradient(180deg, #121b18, #0f1714);
-    box-shadow: none;
-    transition: border-color 0.16s ease, transform 0.16s ease;
-}
-
-.hse-card:hover {
-    border-color: rgba(16, 185, 129, 0.45);
-    transform: translateY(-2px);
+    background: linear-gradient(135deg, #fffdf8, #eef8f2);
+    box-shadow: 0 10px 28px rgba(12, 38, 33, 0.06);
 }
 
 .hse-card strong {
     display: block;
-    color: #f2f7f5;
+    color: #12322d;
     font-size: 1.04rem;
     margin-bottom: 0.5rem;
 }
 
 .hse-card span {
     display: block;
-    color: #93a8a0;
+    color: #39534d;
     font-size: 0.94rem;
     line-height: 1.55;
 }
 
 .hse-direct-answer,
 .hse-notice {
-    border-left: 3px solid #10b981;
-    background: #10201b;
-    color: #d6e4df;
+    border-left: 4px solid #1f7a63;
+    background: #edfdf5;
+    color: #143932;
     padding: 1rem 1.1rem;
-    border-radius: 0 12px 12px 0;
+    border-radius: 16px;
     margin: 1rem 0;
 }
 
 .hse-last-updated {
-    color: #93a8a0;
+    color: rgba(20, 37, 33, 0.65);
     font-size: 0.95rem;
 }
 
@@ -64,10 +54,10 @@
 }
 
 .hse-link-collection--drawer {
-    border: 1px solid rgba(163, 190, 181, 0.14);
-    border-radius: 16px;
-    background: linear-gradient(180deg, #121b18, #0f1714);
-    box-shadow: none;
+    border: 1px solid rgba(20, 37, 33, 0.1);
+    border-radius: 18px;
+    background: linear-gradient(135deg, #fff, #eef8f2);
+    box-shadow: 0 12px 30px rgba(12, 38, 33, 0.05);
     overflow: hidden;
 }
 
@@ -82,8 +72,8 @@
     gap: 1rem;
     cursor: pointer;
     padding: 1rem 1.1rem;
-    color: #f2f7f5;
-    font-weight: 700;
+    color: #12322d;
+    font-weight: 900;
     list-style: none;
 }
 
@@ -99,8 +89,8 @@
     height: 2rem;
     flex: 0 0 auto;
     border-radius: 999px;
-    background: rgba(16, 185, 129, 0.14);
-    color: #6ee7b7;
+    background: rgba(31, 122, 99, 0.1);
+    color: #155645;
     font-size: 1.2rem;
 }
 
@@ -114,9 +104,9 @@
 }
 
 .hse-link-collection--drawer summary small {
-    color: #93a8a0;
+    color: rgba(20, 37, 33, 0.62);
     font-size: 0.88rem;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .hse-link-collection--drawer .hse-link-collection__grid {
@@ -134,12 +124,11 @@
 .hse-trust-box,
 .hse-faq__item,
 .hse-product-compliance {
-    background: linear-gradient(180deg, #121b18, #0f1714);
-    border: 1px solid rgba(163, 190, 181, 0.14);
-    border-radius: 16px;
+    background: #fff;
+    border: 1px solid rgba(20, 37, 33, 0.1);
+    border-radius: 18px;
     padding: 1.1rem;
-    box-shadow: none;
-    color: #c6d5cf;
+    box-shadow: 0 12px 30px rgba(12, 38, 33, 0.05);
 }
 
 .hse-link-pills {
@@ -152,16 +141,10 @@
     display: inline-flex;
     padding: 0.55rem 0.8rem;
     border-radius: 999px;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.25);
-    color: #6ee7b7;
-    font-weight: 600;
+    background: rgba(31, 122, 99, 0.08);
+    color: #155645;
+    font-weight: 700;
     text-decoration: none;
-    transition: background-color 0.16s ease;
-}
-
-.hse-link-pills a:hover {
-    background: rgba(16, 185, 129, 0.2);
 }
 
 .hse-cta {
@@ -170,33 +153,23 @@
     gap: 1rem;
     align-items: center;
     margin: 1.2rem 0;
-    background:
-        radial-gradient(circle at 10% 0%, rgba(16, 185, 129, 0.14), transparent 45%),
-        linear-gradient(180deg, #10201b, #0d1512);
-    border-color: rgba(16, 185, 129, 0.3);
 }
 
 .hse-cta__button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
+    border-radius: 999px;
     padding: 0.9rem 1.2rem;
-    background: #10b981;
-    color: #06120e !important;
-    font-weight: 700;
+    background: linear-gradient(135deg, #b95c22, #8d451c);
+    color: #fff !important;
+    font-weight: 800;
     text-decoration: none;
-    transition: background-color 0.16s ease, transform 0.16s ease;
-}
-
-.hse-cta__button:hover {
-    background: #34d399;
-    transform: translateY(-1px);
 }
 
 .hse-cta__note {
     grid-column: 1 / -1;
-    color: #93a8a0;
+    color: rgba(20, 37, 33, 0.68);
     font-size: 0.92rem;
     margin: 0;
 }
@@ -216,12 +189,11 @@
 }
 
 .hse-related-posts {
-    border-top: 1px solid rgba(163, 190, 181, 0.14);
+    border-top: 1px solid rgba(20, 37, 33, 0.1);
     margin-top: 1.4rem;
     padding-top: 1rem;
 }
 
-/* ---- wp-admin screens (stay light to match core admin chrome) ---------- */
 .hse-admin-wrap .hse-admin-cards,
 .hse-admin-wrap .hse-admin-actions {
     display: grid;
@@ -233,8 +205,7 @@
 .hse-admin-wrap .hse-admin-card {
     background: #fff;
     border: 1px solid rgba(20, 37, 33, 0.1);
-    border-left: 3px solid #10b981;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 1rem;
 }
 
@@ -259,4 +230,61 @@
     .hse-link-collection__grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* ==========================================================================
+   v0.4.1 — dark-mode overrides (html[data-theme="dark"], set by theme toggle)
+   ========================================================================== */
+
+[data-theme="dark"] .hse-card,
+[data-theme="dark"] .hse-link-collection--drawer,
+[data-theme="dark"] .hse-link-group,
+[data-theme="dark"] .hse-trust-box,
+[data-theme="dark"] .hse-faq__item,
+[data-theme="dark"] .hse-product-compliance {
+    background: linear-gradient(180deg, #121b18, #0f1714);
+    border-color: rgba(163, 190, 181, 0.14);
+    box-shadow: none;
+    color: #c6d5cf;
+}
+
+[data-theme="dark"] .hse-card strong,
+[data-theme="dark"] .hse-link-collection--drawer summary {
+    color: #f2f7f5;
+}
+
+[data-theme="dark"] .hse-card span,
+[data-theme="dark"] .hse-cta__note,
+[data-theme="dark"] .hse-last-updated,
+[data-theme="dark"] .hse-link-collection--drawer summary small {
+    color: #93a8a0;
+}
+
+[data-theme="dark"] .hse-direct-answer,
+[data-theme="dark"] .hse-notice {
+    border-left-color: #10b981;
+    background: #10201b;
+    color: #d6e4df;
+}
+
+[data-theme="dark"] .hse-link-pills a,
+[data-theme="dark"] .hse-link-collection--drawer summary::after {
+    background: rgba(16, 185, 129, 0.14);
+    color: #6ee7b7;
+}
+
+[data-theme="dark"] .hse-cta {
+    background:
+        radial-gradient(circle at 10% 0%, rgba(16, 185, 129, 0.14), transparent 45%),
+        linear-gradient(180deg, #10201b, #0d1512);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .hse-cta__button {
+    background: #10b981;
+    color: #06120e !important;
+}
+
+[data-theme="dark"] .hse-related-posts {
+    border-top-color: rgba(163, 190, 181, 0.14);
 }

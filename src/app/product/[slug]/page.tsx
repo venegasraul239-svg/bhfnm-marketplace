@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SafeImage } from "@/components/SafeImage";
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import { dataMode, getCategory, getProduct, getProducts, getReviews, getVendor } from "@/lib/data";
-import { BuyBox } from "@/components/BuyBox";
-import { evaluateCheckoutEligibility } from "@/lib/jurisdiction";
+import { AvailabilitySection } from "./AvailabilitySection";
 import { formatDate } from "@/lib/utils";
 import { Breadcrumbs, Button, FaqAccordion, SectionHeading, StatusPill } from "@/components/ui";
 import { BadgeRow } from "@/components/TrustBadge";
@@ -56,10 +54,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   ]);
   if (!vendor || !category) notFound();
 
-  // Destination from the age-gate cookie (defaults to US-wide view).
-  const jar = await cookies();
-  const dest = jar.get("bhfnm-dest")?.value?.split("-") ?? ["US", ""];
-  const decision = evaluateCheckoutEligibility(product, { country: dest[0], region: dest[1] || undefined });
+  // Destination eligibility renders client-side (AvailabilitySection) so this
+  // page stays ISR — cookies() in a revalidating route 500s in production.
 
   const c = product.compliance;
   const crumbs = [
@@ -125,31 +121,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <BadgeRow badges={product.badges} />
             </div>
 
-            {/* Availability + checkout */}
-            <div className="mt-6 space-y-3">
-              {decision.notice && (
-                <p
-                  className={`rounded-lg border px-4 py-3 text-sm ${
-                    decision.eligible
-                      ? "border-ink-600 bg-ink-800/60 text-mist-300"
-                      : "border-amber-glow/40 bg-amber-glow/10 text-amber-glow"
-                  }`}
-                >
-                  {decision.notice}
-                </p>
-              )}
-              <BuyBox
+            {/* Availability + checkout (client-side destination check) */}
+            <div className="space-y-3">
+              <AvailabilitySection
+                product={product}
                 vendorName={vendor.brandName}
                 vendorSlug={vendor.slug}
-                variants={product.variants}
-                purchasable={decision.eligible && dataMode() === "live"}
-                unavailableReason={
-                  !decision.eligible
-                    ? "Checkout is unavailable for your destination — the listing stays visible for research."
-                    : dataMode() !== "live"
-                      ? "This environment shows the sample catalog — purchasing is disabled outside the live marketplace."
-                      : undefined
-                }
+                live={dataMode() === "live"}
               />
               <p className="text-[11px] leading-relaxed text-mist-400">
                 Single-vendor checkout: each order is fulfilled and shipped by {vendor.brandName} with a

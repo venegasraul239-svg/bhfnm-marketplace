@@ -61,6 +61,7 @@ $nav_groups = hsa_navigation_groups();
 
         <div class="header-actions">
             <a class="header-cta--marketplace" href="<?php echo esc_url(home_url('/marketplace')); ?>">Shop the Marketplace</a>
+            <?php hsa_render_theme_toggle(); ?>
             <?php hsa_render_header_actions(); ?>
             <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav-panel" data-nav-toggle>
                 <span></span>
