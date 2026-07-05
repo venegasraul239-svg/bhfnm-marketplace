@@ -1,0 +1,233 @@
+.hse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0;
+}
+
+.hse-card {
+    display: block;
+    min-height: 100%;
+    text-decoration: none;
+    border: 1px solid rgba(20, 37, 33, 0.1);
+    border-radius: 20px;
+    padding: 1.1rem;
+    background: linear-gradient(135deg, #fffdf8, #eef8f2);
+    box-shadow: 0 10px 28px rgba(12, 38, 33, 0.06);
+}
+
+.hse-card strong {
+    display: block;
+    color: #12322d;
+    font-size: 1.04rem;
+    margin-bottom: 0.5rem;
+}
+
+.hse-card span {
+    display: block;
+    color: #39534d;
+    font-size: 0.94rem;
+    line-height: 1.55;
+}
+
+.hse-direct-answer,
+.hse-notice {
+    border-left: 4px solid #1f7a63;
+    background: #edfdf5;
+    color: #143932;
+    padding: 1rem 1.1rem;
+    border-radius: 16px;
+    margin: 1rem 0;
+}
+
+.hse-last-updated {
+    color: rgba(20, 37, 33, 0.65);
+    font-size: 0.95rem;
+}
+
+.hse-content-section {
+    margin: 1.1rem 0;
+}
+
+.hse-link-collection {
+    margin: 1.35rem 0;
+}
+
+.hse-link-collection--drawer {
+    border: 1px solid rgba(20, 37, 33, 0.1);
+    border-radius: 18px;
+    background: linear-gradient(135deg, #fff, #eef8f2);
+    box-shadow: 0 12px 30px rgba(12, 38, 33, 0.05);
+    overflow: hidden;
+}
+
+.hse-link-collection--drawer details {
+    display: block;
+}
+
+.hse-link-collection--drawer summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    padding: 1rem 1.1rem;
+    color: #12322d;
+    font-weight: 900;
+    list-style: none;
+}
+
+.hse-link-collection--drawer summary::-webkit-details-marker {
+    display: none;
+}
+
+.hse-link-collection--drawer summary::after {
+    content: "+";
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: rgba(31, 122, 99, 0.1);
+    color: #155645;
+    font-size: 1.2rem;
+}
+
+.hse-link-collection--drawer details[open] summary::after {
+    content: "-";
+}
+
+.hse-link-collection--drawer summary span,
+.hse-link-collection--drawer summary small {
+    display: block;
+}
+
+.hse-link-collection--drawer summary small {
+    color: rgba(20, 37, 33, 0.62);
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.hse-link-collection--drawer .hse-link-collection__grid {
+    padding: 0 1.1rem 1.1rem;
+}
+
+.hse-link-collection__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.hse-link-group,
+.hse-cta,
+.hse-trust-box,
+.hse-faq__item,
+.hse-product-compliance {
+    background: #fff;
+    border: 1px solid rgba(20, 37, 33, 0.1);
+    border-radius: 18px;
+    padding: 1.1rem;
+    box-shadow: 0 12px 30px rgba(12, 38, 33, 0.05);
+}
+
+.hse-link-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.hse-link-pills a {
+    display: inline-flex;
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(31, 122, 99, 0.08);
+    color: #155645;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.hse-cta {
+    display: grid;
+    grid-template-columns: 1.3fr auto;
+    gap: 1rem;
+    align-items: center;
+    margin: 1.2rem 0;
+}
+
+.hse-cta__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0.9rem 1.2rem;
+    background: linear-gradient(135deg, #b95c22, #8d451c);
+    color: #fff !important;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.hse-cta__note {
+    grid-column: 1 / -1;
+    color: rgba(20, 37, 33, 0.68);
+    font-size: 0.92rem;
+    margin: 0;
+}
+
+.hse-trust-box ul,
+.hse-product-compliance ul,
+.hse-related-posts ul {
+    margin: 0;
+}
+
+.hse-faq {
+    margin: 1.25rem 0;
+}
+
+.hse-faq__item + .hse-faq__item {
+    margin-top: 0.9rem;
+}
+
+.hse-related-posts {
+    border-top: 1px solid rgba(20, 37, 33, 0.1);
+    margin-top: 1.4rem;
+    padding-top: 1rem;
+}
+
+.hse-admin-wrap .hse-admin-cards,
+.hse-admin-wrap .hse-admin-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 1.4rem;
+}
+
+.hse-admin-wrap .hse-admin-card {
+    background: #fff;
+    border: 1px solid rgba(20, 37, 33, 0.1);
+    border-radius: 16px;
+    padding: 1rem;
+}
+
+.hse-admin-wrap .hse-admin-card span {
+    display: block;
+    color: rgba(20, 37, 33, 0.68);
+}
+
+.hse-admin-wrap .hse-admin-card strong {
+    display: block;
+    font-size: 1.6rem;
+    line-height: 1.1;
+    margin-top: 0.2rem;
+}
+
+@media (max-width: 780px) {
+    .hse-cta {
+        grid-template-columns: 1fr;
+    }
+
+    .hse-grid,
+    .hse-link-collection__grid {
+        grid-template-columns: 1fr;
+    }
+}
