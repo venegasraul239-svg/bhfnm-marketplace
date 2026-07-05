@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('HSA_VERSION', '0.4.1');
+define('HSA_VERSION', '0.5.0');
 define('HSA_MARKETPLACE_URL', home_url('/marketplace'));
 
 function hsa_setup() {

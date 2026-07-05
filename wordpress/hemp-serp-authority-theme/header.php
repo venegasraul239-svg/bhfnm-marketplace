@@ -1,9 +1,5 @@
 <?php if (!defined('ABSPATH')) { exit; } ?>
-<?php
-$primary_links = hsa_seed_menu_pages();
-$trending_links = hsa_trending_paths();
-$nav_groups = hsa_navigation_groups();
-?>
+<?php $nav_groups = hsa_navigation_groups(); ?>
 <!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -14,44 +10,31 @@ $nav_groups = hsa_navigation_groups();
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <span id="top" class="screen-reader-text">Top</span>
-<div class="site-topbar">
-    <div class="wrap site-topbar__inner">
-        <div class="site-topbar__message">
-            <span class="site-topbar__badge">COA-first hemp discovery</span>
-            <p>State-aware hemp flower, THCA, CBD, CBG, drinks, law, and wholesale research.</p>
-        </div>
-        <div class="site-topbar__utility">
-            <a href="<?php echo esc_url(home_url('/marketplace')); ?>">Marketplace</a>
-            <a href="<?php echo esc_url(home_url('/hemp-laws-by-state/')); ?>">State laws</a>
-            <a href="<?php echo esc_url(home_url('/how-to-read-a-hemp-coa/')); ?>">COA guide</a>
+
+<header class="site-header site-header--app">
+    <div class="wrap appbar">
+        <a class="appbar__brand" href="<?php echo esc_url(home_url('/')); ?>" aria-label="<?php echo esc_attr(get_bloginfo('name')); ?>">
+            <span class="appbar__mark">B</span>
+            <span class="appbar__brandcopy">
+                <strong><?php bloginfo('name'); ?></strong>
+                <small>COA-first hemp discovery</small>
+            </span>
+        </a>
+
+        <nav class="appbar__nav" aria-label="Primary">
+            <a href="<?php echo esc_url(home_url('/product-category/hemp-flower/')); ?>">Hemp Flower</a>
+            <a href="<?php echo esc_url(home_url('/product-category/thca-flower/')); ?>">THCA</a>
+            <a href="<?php echo esc_url(home_url('/product-category/cbd-flower/')); ?>">CBD</a>
+            <a href="<?php echo esc_url(home_url('/hemp-laws-by-state/')); ?>">State Laws</a>
+            <a href="<?php echo esc_url(home_url('/how-to-read-a-hemp-coa/')); ?>">COA Guide</a>
             <a href="<?php echo esc_url(home_url('/wholesale-hemp-flower/')); ?>">Wholesale</a>
-            <a href="<?php echo esc_url(home_url('/product-category/hemp-accessories/')); ?>">Accessories</a>
-            <a href="<?php echo esc_url(hsa_cart_url()); ?>">Cart</a>
-            <a href="<?php echo esc_url(hsa_account_url()); ?>">Account</a>
-        </div>
-    </div>
-</div>
+        </nav>
 
-<header class="site-header">
-    <div class="wrap header-inner">
-        <div class="brand-block">
-            <a class="brand-mark" href="<?php echo esc_url(home_url('/')); ?>" aria-label="<?php echo esc_attr(get_bloginfo('name')); ?>">
-                <span>B</span>
-            </a>
-            <div class="brand-copy">
-                <a class="brand" href="<?php echo esc_url(home_url('/')); ?>"><?php bloginfo('name'); ?></a>
-                <p class="tagline">Find hemp categories, state guides, lab-testing help, and wholesale paths.</p>
-            </div>
-        </div>
-
-        <form class="site-search" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>" data-hsa-search>
+        <form class="site-search site-search--app" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>" data-hsa-search>
             <label class="screen-reader-text" for="hsa-site-search">Search hemp products, categories, tags, and guides</label>
             <div class="site-search__bar">
-                <span class="site-search__scope">All</span>
-                <input id="hsa-site-search" type="search" name="s" autocomplete="off" placeholder="Search flower, THCA, COA, state laws, wholesale..." data-hsa-search-input>
-                <button type="submit" aria-label="Search site">
-                    <span aria-hidden="true">Search</span>
-                </button>
+                <input id="hsa-site-search" type="search" name="s" autocomplete="off" placeholder="Search flower, THCA, state laws…" data-hsa-search-input>
+                <button type="submit" aria-label="Search site">Search</button>
             </div>
             <div class="site-search__panel" data-hsa-search-panel hidden>
                 <div class="site-search__status" data-hsa-search-status>Start typing to preview products, categories, tags, and guides.</div>
@@ -59,27 +42,29 @@ $nav_groups = hsa_navigation_groups();
             </div>
         </form>
 
-        <div class="header-actions">
+        <div class="appbar__actions">
             <a class="header-cta--marketplace" href="<?php echo esc_url(home_url('/marketplace')); ?>">Shop the Marketplace</a>
             <?php hsa_render_theme_toggle(); ?>
-            <?php hsa_render_header_actions(); ?>
+            <a class="appbar__icon" href="<?php echo esc_url(hsa_account_url()); ?>" aria-label="Account" title="Account">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </a>
+            <a class="appbar__icon" href="<?php echo esc_url(hsa_cart_url()); ?>" aria-label="Cart" title="Cart">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </a>
             <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav-panel" data-nav-toggle>
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
                 <span class="screen-reader-text">Open navigation</span>
             </button>
         </div>
     </div>
 
-    <div class="site-subnav">
-        <div class="wrap site-subnav__inner">
-            <?php hsa_render_mega_menu(); ?>
-            <div class="site-subnav__links" aria-label="Popular hemp paths">
-                <?php foreach ($trending_links as $label => $path) : ?>
-                    <a href="<?php echo esc_url(home_url($path)); ?>"><?php echo esc_html($label); ?></a>
-                <?php endforeach; ?>
-            </div>
+    <div class="site-trustbar">
+        <div class="wrap site-trustbar__inner">
+            <span>✓ COA-first research</span>
+            <span>✓ State-aware guidance</span>
+            <span>✓ Verified partner pathways</span>
+            <span class="site-trustbar__btc">₿ Bitcoin checkout on the marketplace</span>
+            <a class="site-trustbar__link" href="<?php echo esc_url(home_url('/marketplace')); ?>">Browse verified listings →</a>
         </div>
     </div>
 </header>
@@ -93,10 +78,6 @@ $nav_groups = hsa_navigation_groups();
                 <strong><?php bloginfo('name'); ?></strong>
             </div>
             <button class="mobile-nav__close" type="button" data-nav-close>Close</button>
-        </div>
-
-        <div class="mobile-nav__lede">
-            <p>Explore hemp flower, THCA, CBD, CBG, hemp drinks, COA guidance, state laws, and wholesale research.</p>
         </div>
 
         <?php hsa_render_mobile_quick_actions(); ?>

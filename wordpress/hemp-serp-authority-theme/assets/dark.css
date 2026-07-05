@@ -4408,3 +4408,104 @@ footer.site-footer {
 ::-webkit-scrollbar-thumb:hover {
     background: #2d4038;
 }
+
+/* ==========================================================================
+   v0.5 dark rules for the marketplace shell (appbar, trustbar, hero).
+   dark.css loads after style.css, so these win in dark mode — including
+   over the light layer's !important hero treatment.
+   ========================================================================== */
+
+.site-header--app {
+    background: rgba(10, 16, 14, 0.92);
+    border-bottom: 1px solid rgba(163, 190, 181, 0.14);
+    backdrop-filter: blur(12px);
+}
+
+.appbar__mark { background: #10b981; color: #06120e; }
+.appbar__brandcopy strong { color: #f2f7f5; }
+.appbar__brandcopy small { color: #93a8a0; }
+.appbar__nav a { color: #b2c4bd; }
+.appbar__nav a:hover { color: #6ee7b7; }
+
+.appbar__icon { color: #b2c4bd; }
+.appbar__icon:hover { background: #16211d; color: #6ee7b7; }
+
+.site-search--app .site-search__bar {
+    background: #101815;
+    border-color: rgba(163, 190, 181, 0.18);
+}
+
+.site-search--app .site-search__bar:focus-within {
+    background: #0d1512;
+    border-color: #10b981;
+}
+
+.site-search--app .site-search__bar input { color: #f2f7f5; }
+.site-search--app .site-search__bar button { color: #6ee7b7; }
+
+.site-search--app .site-search__panel {
+    background: #0f1714;
+    border-color: rgba(163, 190, 181, 0.18);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.site-trustbar {
+    background: rgba(8, 13, 11, 0.9);
+    border-top: 1px solid rgba(163, 190, 181, 0.1);
+}
+
+.site-trustbar__inner { color: #93a8a0; }
+.site-trustbar__btc { color: #f0a54f; }
+.site-trustbar__link { color: #6ee7b7; }
+
+:root { --hsa-border-strong: rgba(163, 190, 181, 0.16); --hsa-surface: #121b18; }
+
+.hero, .section--dark, .archive-hero, .footer-hero {
+    background:
+        radial-gradient(900px 380px at 80% -10%, rgba(16, 185, 129, 0.1), transparent 60%),
+        linear-gradient(180deg, #0d1512 0%, #0a100e 100%) !important;
+    color: #dbe7e2 !important;
+}
+
+.hero h1, .section--dark h1, .section--dark h2, .archive-hero h1, .footer-hero h2 {
+    color: #f2f7f5 !important;
+}
+
+.hero p, .section--dark p, .archive-hero p, .footer-hero p {
+    color: #93a8a0 !important;
+}
+
+.content-card, .hero-panel, .spotlight-card, .footer-card, .widget,
+.archive-intent-card, .archive-research-panel, .research-snapshot,
+.hse-card, .hse-trust-box, .hse-product-compliance, .hse-cta,
+.hse-link-group, .hse-faq__item, .hse-link-collection--drawer,
+.woocommerce ul.products li.product {
+    background: linear-gradient(180deg, #121b18, #0f1714);
+    border: 1px solid rgba(163, 190, 181, 0.14);
+    box-shadow: none;
+}
+
+.hero-chip-row a, .footer-pills a, .header-chip, .hse-link-pills a {
+    background: #16211d;
+    color: #cfe4dc;
+}
+
+.hero-chip-row a:hover, .footer-pills a:hover, .header-chip:hover {
+    border-color: #10b981;
+    color: #6ee7b7;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.btn, .header-cta, button[type="submit"], input[type="submit"],
+.woocommerce a.button, .woocommerce button.button, .woocommerce input.button {
+    background: #10b981;
+    color: #06120e !important;
+}
+
+.btn:hover, .header-cta:hover { background: #34d399; }
+
+.btn--ghost, .btn.btn--secondary, .hsa-marketplace-band__secondary {
+    background: transparent;
+    color: #cfe4dc !important;
+    border-color: rgba(163, 190, 181, 0.28);
+}
