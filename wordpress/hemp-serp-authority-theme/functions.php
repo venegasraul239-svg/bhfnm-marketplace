@@ -3,7 +3,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('HSA_VERSION', '0.3.19');
+define('HSA_VERSION', '0.4.0');
+define('HSA_MARKETPLACE_URL', home_url('/marketplace'));
 
 function hsa_setup() {
     add_theme_support('title-tag');
@@ -21,7 +22,8 @@ function hsa_setup() {
 add_action('after_setup_theme', 'hsa_setup');
 
 function hsa_assets() {
-    wp_enqueue_style('hsa-fonts', 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap', [], null);
+    // Shared type system with the BHFNM Marketplace app (Inter + Space Grotesk).
+    wp_enqueue_style('hsa-fonts', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap', [], null);
     wp_enqueue_style('hsa-style', get_stylesheet_uri(), [], HSA_VERSION);
     wp_enqueue_script('hsa-script', get_template_directory_uri() . '/hsa-ui.js', [], HSA_VERSION, true);
     wp_localize_script('hsa-script', 'HSA_SEARCH', [
@@ -1270,3 +1272,76 @@ function hsa_related_category_panel() {
     echo '</section>';
 }
 add_action('woocommerce_after_single_product_summary', 'hsa_related_category_panel', 12);
+
+/* ==========================================================================
+   v0.4 — BHFNM Marketplace cross-linking
+   The education hub is the SEO authority; the marketplace is the commerce
+   layer. These helpers route intent-matched visitors into /marketplace.
+   ========================================================================== */
+
+/**
+ * Map WooCommerce category / page context to the matching marketplace category.
+ */
+function hsa_marketplace_target() {
+    $map = [
+        'hemp-flower'      => '/marketplace/categories/hemp-flower',
+        'thca-flower'      => '/marketplace/categories/thca-flower',
+        'cbd-flower'       => '/marketplace/categories/cbd-flower',
+        'cbg-flower'       => '/marketplace/categories/cbg-flower',
+        'hemp-pre-rolls'   => '/marketplace/categories/pre-rolls',
+        'hemp-drinks'      => '/marketplace/categories/thc-drinks',
+        'hemp-gummies'     => '/marketplace/categories/gummies',
+        'hemp-accessories' => '/marketplace/categories/accessories',
+    ];
+
+    if (function_exists('is_product_category')) {
+        foreach ($map as $slug => $path) {
+            if (is_product_category($slug)) {
+                return home_url($path);
+            }
+        }
+    }
+    if (is_page() || is_single()) {
+        $wp_slug = get_post_field('post_name', get_queried_object_id());
+        foreach ($map as $slug => $path) {
+            if ($wp_slug && strpos($wp_slug, $slug) !== false) {
+                return home_url($path);
+            }
+        }
+        if ($wp_slug && strpos($wp_slug, 'wholesale') !== false) {
+            return home_url('/marketplace/categories/wholesale');
+        }
+    }
+    return HSA_MARKETPLACE_URL;
+}
+
+/**
+ * Marketplace CTA band — rendered above the footer on public pages.
+ * Deep-links into the matching marketplace category where one exists.
+ */
+function hsa_render_marketplace_band() {
+    if (is_admin() || is_cart() || is_checkout() || is_account_page()) {
+        return;
+    }
+    $target = hsa_marketplace_target();
+    ?>
+    <div class="wrap">
+        <aside class="hsa-marketplace-band" aria-label="BHFNM Marketplace">
+            <div class="hsa-marketplace-band__copy">
+                <p class="hsa-eyebrow">BHFNM Marketplace</p>
+                <h2>Buy from identity-verified sellers</h2>
+                <p>Every marketplace listing carries an admin-verified, batch-linked COA, ships with tracked labels, and checks out with Bitcoin or Lightning.</p>
+            </div>
+            <div class="hsa-marketplace-band__actions">
+                <a class="header-cta--marketplace" href="<?php echo esc_url($target); ?>">Shop the Marketplace</a>
+                <a class="hsa-marketplace-band__secondary" href="<?php echo esc_url(home_url('/marketplace/vendors/apply')); ?>">Apply to sell</a>
+            </div>
+        </aside>
+    </div>
+    <?php
+}
+
+/** Safe fallbacks when WooCommerce conditionals are unavailable. */
+if (!function_exists('is_cart')) { function is_cart() { return false; } }
+if (!function_exists('is_checkout')) { function is_checkout() { return false; } }
+if (!function_exists('is_account_page')) { function is_account_page() { return false; } }

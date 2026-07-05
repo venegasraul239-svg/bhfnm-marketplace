@@ -21,6 +21,7 @@ $nav_groups = hsa_navigation_groups();
             <p>State-aware hemp flower, THCA, CBD, CBG, drinks, law, and wholesale research.</p>
         </div>
         <div class="site-topbar__utility">
+            <a href="<?php echo esc_url(home_url('/marketplace')); ?>">Marketplace</a>
             <a href="<?php echo esc_url(home_url('/hemp-laws-by-state/')); ?>">State laws</a>
             <a href="<?php echo esc_url(home_url('/how-to-read-a-hemp-coa/')); ?>">COA guide</a>
             <a href="<?php echo esc_url(home_url('/wholesale-hemp-flower/')); ?>">Wholesale</a>
@@ -59,6 +60,7 @@ $nav_groups = hsa_navigation_groups();
         </form>
 
         <div class="header-actions">
+            <a class="header-cta--marketplace" href="<?php echo esc_url(home_url('/marketplace')); ?>">Shop the Marketplace</a>
             <?php hsa_render_header_actions(); ?>
             <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav-panel" data-nav-toggle>
                 <span></span>
@@ -108,6 +110,7 @@ $nav_groups = hsa_navigation_groups();
         </div>
 
         <div class="mobile-nav__footer">
+            <a class="header-cta--marketplace" href="<?php echo esc_url(home_url('/marketplace')); ?>">Shop the Marketplace</a>
             <a class="header-cta" href="<?php echo esc_url(home_url('/hemp-laws-by-state/')); ?>">Open state law hub</a>
         </div>
     </div>

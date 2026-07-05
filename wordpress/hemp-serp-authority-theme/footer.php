@@ -1,5 +1,6 @@
 <?php if (!defined('ABSPATH')) { exit; } ?>
 <?php $footer_groups = hsa_footer_navigation_groups(); ?>
+<?php hsa_render_marketplace_band(); ?>
 <footer class="site-footer">
     <a class="footer-back-top" href="#top">Back to top</a>
     <div class="wrap footer-shell">
@@ -26,6 +27,17 @@
                     <a href="<?php echo esc_url(home_url('/product-tag/coa-verified/')); ?>">COA verified</a>
                     <a href="<?php echo esc_url(home_url('/hemp-authority-guides/')); ?>">Guides</a>
                 </div>
+            </section>
+
+            <section class="footer-card">
+                <p class="hsa-eyebrow">Marketplace</p>
+                <ul class="footer-link-list">
+                    <li><a href="<?php echo esc_url(home_url('/marketplace')); ?>">Shop verified sellers</a></li>
+                    <li><a href="<?php echo esc_url(home_url('/marketplace/categories/hemp-flower')); ?>">Hemp flower listings</a></li>
+                    <li><a href="<?php echo esc_url(home_url('/marketplace/categories/thca-flower')); ?>">THCA flower listings</a></li>
+                    <li><a href="<?php echo esc_url(home_url('/marketplace/categories/wholesale')); ?>">Wholesale supply</a></li>
+                    <li><a href="<?php echo esc_url(home_url('/marketplace/vendors/apply')); ?>">Apply to sell</a></li>
+                </ul>
             </section>
 
             <?php foreach ($footer_groups as $group_label => $links) : ?>
