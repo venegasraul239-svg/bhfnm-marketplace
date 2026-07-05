@@ -31,7 +31,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
   const { data: product } = await db
     .from("products")
-    .select("id, title, status, vendor:vendors(slug, support_email, owner:profiles(email))")
+    .select("id, title, status, vendor:vendors(slug, support_email, owner:profiles!vendors_owner_id_fkey(email))")
     .eq("id", id)
     .maybeSingle();
   if (!product) {

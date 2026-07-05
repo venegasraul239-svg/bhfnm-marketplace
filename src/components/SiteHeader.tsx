@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Search } from "lucide-react";
 import { AccountMenu } from "./AccountMenu";
+import { SearchBar } from "./SearchBar";
 
 const NAV = [
   { label: "Hemp Flower", href: "/categories/hemp-flower" },
@@ -33,16 +33,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <form action="/search" className="relative hidden md:block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mist-400" aria-hidden />
-            <input
-              type="search"
-              name="q"
-              placeholder="Search products, brands, batches…"
-              aria-label="Search marketplace"
-              className="w-64 rounded-lg border border-ink-600 bg-ink-800 py-2 pl-9 pr-3 text-sm text-mist-100 placeholder:text-mist-400 focus:border-jade-500 focus:outline-none"
-            />
-          </form>
+          <SearchBar variant="header" />
           <Link
             href="/vendors/apply"
             className="hidden rounded-lg border border-jade-500/50 px-3 py-2 text-sm font-semibold text-jade-300 hover:bg-jade-500/10 sm:block"

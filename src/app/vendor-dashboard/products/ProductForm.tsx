@@ -21,8 +21,21 @@ const CANNABINOIDS = ["cbd", "cbg", "cbn", "thca", "delta9_hemp", "delta8", "hhc
 const inputCls =
   "w-full rounded-lg border border-ink-600 bg-ink-800 px-3 py-2 text-sm text-mist-100 placeholder:text-mist-500 focus:border-jade-500 focus:outline-none";
 
+const EMPTY_FORM = {
+  title: "", categorySlug: "hemp-flower", cannabinoidType: "cbd", subtype: "",
+  shortDescription: "", description: "", batchNumber: "", imageUrl: "",
+  sku: "", variantName: "3.5g", price: "", stock: "0",
+  labName: "", coaIssueDate: "", retestDate: "",
+  delta9: "", totalThc: "", thca: "", cbd: "", cbg: "",
+  wholesaleAvailable: false,
+};
+
 export function ProductForm() {
   const router = useRouter();
+  // Draft id from the first save — later saves/submits UPDATE this draft
+  // instead of creating duplicates.
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [f, setF] = useState({
     title: "", categorySlug: "hemp-flower", cannabinoidType: "cbd", subtype: "",
     shortDescription: "", description: "", batchNumber: "", imageUrl: "",
@@ -53,6 +66,7 @@ export function ProductForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...(draftId && { id: draftId }),
           title: f.title,
           categorySlug: f.categorySlug,
           cannabinoidType: f.cannabinoidType,
@@ -83,12 +97,18 @@ export function ProductForm() {
         setMsg({ tone: "err", text: body?.error?.message ?? "Save failed." });
         return;
       }
-      setMsg({
-        tone: "ok",
-        text: submit
-          ? "Submitted for compliance review — you'll see the decision here and by notification."
-          : "Draft saved.",
-      });
+      if (submit) {
+        // Submitted drafts are locked for review — reset for the next listing.
+        setDraftId(null);
+        setF(EMPTY_FORM);
+        setMsg({
+          tone: "ok",
+          text: "Submitted for compliance review — you'll see the decision here and by notification.",
+        });
+      } else {
+        setDraftId(body.id ?? draftId);
+        setMsg({ tone: "ok", text: "Draft saved — further saves update this same draft." });
+      }
       router.refresh();
     } catch {
       setMsg({ tone: "err", text: "Network error — nothing was saved." });
@@ -114,7 +134,46 @@ export function ProductForm() {
         </select>
         <input aria-label="Short description" placeholder="Short description (cards & search)" value={f.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} className={`${inputCls} sm:col-span-2`} />
         <textarea aria-label="Description" placeholder="Full description" rows={3} value={f.description} onChange={(e) => set("description", e.target.value)} className={`${inputCls} sm:col-span-2`} />
-        <input aria-label="Image URL" placeholder="Image URL (Supabase Storage or approved host)" value={f.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} className={`${inputCls} sm:col-span-2`} />
+        <div className="sm:col-span-2">
+          <div className="flex items-center gap-3">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-ink-600 bg-ink-800 px-3 py-2 text-sm font-medium text-mist-200 hover:border-jade-500/60">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/avif"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setUploading(true);
+                  setMsg(null);
+                  try {
+                    const fd = new FormData();
+                    fd.append("file", file);
+                    const res = await fetch("/marketplace/api/vendor/uploads", { method: "POST", body: fd });
+                    const body = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                      setMsg({ tone: "err", text: body?.error?.message ?? "Upload failed." });
+                      return;
+                    }
+                    set("imageUrl", body.url);
+                    setMsg({ tone: "ok", text: "Image uploaded." });
+                  } catch {
+                    setMsg({ tone: "err", text: "Upload failed — check your connection." });
+                  } finally {
+                    setUploading(false);
+                    e.target.value = "";
+                  }
+                }}
+              />
+              {uploading ? "Uploading…" : "Upload product image"}
+            </label>
+            {f.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={f.imageUrl} alt="Product preview" className="h-10 w-10 rounded-lg border border-ink-600 object-cover" />
+            )}
+          </div>
+          <input aria-label="Image URL" placeholder="…or paste an image URL (Supabase Storage or approved host)" value={f.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} className={`${inputCls} mt-2`} />
+        </div>
         <input aria-label="SKU" placeholder="SKU *" value={f.sku} onChange={(e) => set("sku", e.target.value)} className={inputCls} />
         <input aria-label="Variant name" placeholder="Variant (e.g. 3.5g)" value={f.variantName} onChange={(e) => set("variantName", e.target.value)} className={inputCls} />
         <input aria-label="Price USD" placeholder="Price USD *" inputMode="decimal" value={f.price} onChange={(e) => set("price", e.target.value)} className={inputCls} />

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCategories, getProducts, getVendors } from "@/lib/data";
 import { Button, Card, FaqAccordion, SectionHeading, Stat } from "@/components/ui";
 import { ProductCard } from "@/components/ProductCard";
+import { SearchBar } from "@/components/SearchBar";
 import { BadgeRow } from "@/components/TrustBadge";
 import { JsonLd } from "@/components/JsonLd";
 import { faqSchema } from "@/lib/schema-org";
@@ -48,16 +49,9 @@ export default async function HomePage() {
             and brands — with batch-linked lab results, tracked fulfillment, and Bitcoin checkout.
           </p>
 
-          <form action="/search" className="mt-8 flex max-w-xl gap-2">
-            <input
-              type="search"
-              name="q"
-              placeholder="Search verified products, brands, or batch numbers…"
-              aria-label="Search the marketplace"
-              className="flex-1 rounded-xl border border-ink-600 bg-ink-900/80 px-4 py-3.5 text-sm text-mist-100 placeholder:text-mist-400 focus:border-jade-500 focus:outline-none"
-            />
-            <Button size="lg" type="submit">Search</Button>
-          </form>
+          <div className="mt-8">
+            <SearchBar variant="hero" placeholder="Search verified products, brands, or batch numbers…" />
+          </div>
 
           <div className="mt-12 grid max-w-2xl grid-cols-2 gap-8 sm:grid-cols-4">
             {vendors.length > 0 && <Stat value={`${vendors.length}`} label="Verified vendors" />}
