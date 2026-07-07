@@ -1,10 +1,10 @@
 "use client";
 
-// Draft listing form (single-variant beta flow). Save keeps it a draft;
-// "Submit for review" moves it to the admin queue — publication is never
-// vendor-controlled.
+// Guided listing studio: create or edit a draft with live quality scoring,
+// a search-result preview, and AI-search readiness checks. Vendors still
+// cannot self-publish — submission always routes through admin review.
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 
@@ -18,10 +18,16 @@ const CATEGORIES = [
 
 const CANNABINOIDS = ["cbd", "cbg", "cbn", "thca", "delta9_hemp", "delta8", "hhc", "mixed", "none"] as const;
 
-const inputCls =
-  "w-full rounded-lg border border-ink-600 bg-ink-800 px-3 py-2 text-sm text-mist-100 placeholder:text-mist-500 focus:border-jade-500 focus:outline-none";
+export interface DraftInitial {
+  id: string; title: string; categorySlug: string; cannabinoidType: string; subtype: string;
+  shortDescription: string; description: string; batchNumber: string; imageUrl: string;
+  sku: string; variantName: string; price: string; stock: string;
+  labName: string; coaIssueDate: string; retestDate: string;
+  delta9: string; totalThc: string; thca: string; cbd: string; cbg: string;
+  wholesaleAvailable: boolean;
+}
 
-const EMPTY_FORM = {
+const EMPTY_FORM: Omit<DraftInitial, "id"> = {
   title: "", categorySlug: "hemp-flower", cannabinoidType: "cbd", subtype: "",
   shortDescription: "", description: "", batchNumber: "", imageUrl: "",
   sku: "", variantName: "3.5g", price: "", stock: "0",
@@ -30,26 +36,82 @@ const EMPTY_FORM = {
   wholesaleAvailable: false,
 };
 
-export function ProductForm() {
+const inputCls =
+  "w-full rounded-lg border border-ink-600 bg-ink-800 px-3 py-2 text-sm text-mist-100 placeholder:text-mist-500 focus:border-jade-500 focus:outline-none";
+
+interface Check {
+  key: string;
+  label: string;
+  pass: boolean;
+  tip: string;
+}
+
+export function ProductForm({ initial }: { initial?: DraftInitial }) {
   const router = useRouter();
-  // Draft id from the first save — later saves/submits UPDATE this draft
-  // instead of creating duplicates.
-  const [draftId, setDraftId] = useState<string | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(initial?.id ?? null);
   const [uploading, setUploading] = useState(false);
-  const [f, setF] = useState({
-    title: "", categorySlug: "hemp-flower", cannabinoidType: "cbd", subtype: "",
-    shortDescription: "", description: "", batchNumber: "", imageUrl: "",
-    sku: "", variantName: "3.5g", price: "", stock: "0",
-    labName: "", coaIssueDate: "", retestDate: "",
-    delta9: "", totalThc: "", thca: "", cbd: "", cbg: "",
-    wholesaleAvailable: false,
-  });
+  const [f, setF] = useState<Omit<DraftInitial, "id">>(initial ? { ...initial } : { ...EMPTY_FORM });
   const [busy, setBusy] = useState<"save" | "submit" | null>(null);
   const [msg, setMsg] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
 
   function set<K extends keyof typeof f>(k: K, v: (typeof f)[K]) {
     setF((prev) => ({ ...prev, [k]: v }));
   }
+
+  const isCannabinoid = f.cannabinoidType !== "none";
+  const potencyCount = [f.delta9, f.totalThc, f.thca, f.cbd, f.cbg].filter((v) => v.trim()).length;
+
+  // ---- Listing quality checks (SEO + AI-search readiness) ------------------
+  const checks: Check[] = useMemo(() => {
+    const words = f.title.trim().split(/\s+/).filter(Boolean);
+    return [
+      {
+        key: "title",
+        label: "Descriptive title (20–70 chars)",
+        pass: f.title.length >= 20 && f.title.length <= 70 && words.length >= 3,
+        tip: "Strain + product type + size works best: “Amnesia Haze THCA Flower — Bulk Sativa 3.5g”. This becomes the page title Google shows.",
+      },
+      {
+        key: "meta",
+        label: "Short description (50–160 chars)",
+        pass: f.shortDescription.length >= 50 && f.shortDescription.length <= 160,
+        tip: "One factual sentence — it becomes the meta description in search results and the card text. Lead with what it IS, not hype.",
+      },
+      {
+        key: "body",
+        label: "Full description (300+ chars, factual)",
+        pass: f.description.replace(/\s+/g, " ").length >= 300,
+        tip: "Cover: strain/genetics, aroma and appearance, growing/manufacturing method, who it's for, and how it's tested. AI search engines quote factual, specific sentences — skip superlatives.",
+      },
+      {
+        key: "image",
+        label: "Product image",
+        pass: Boolean(f.imageUrl),
+        tip: "Upload a well-lit photo of the actual product batch — stock photos erode trust and reviews mention it.",
+      },
+      {
+        key: "batch",
+        label: "Batch/lot number",
+        pass: Boolean(f.batchNumber.trim()),
+        tip: "Ties the listing to its COA — required for the Batch Linked badge and makes the product findable by batch search.",
+      },
+      {
+        key: "coa",
+        label: isCannabinoid ? "Structured COA (lab, date, 2+ potency values)" : "COA (not required for non-cannabinoid)",
+        pass: !isCannabinoid || (Boolean(f.labName.trim()) && Boolean(f.coaIssueDate) && potencyCount >= 2),
+        tip: "Verified COA data drives search ranking, the Verified COA badge, and is the #1 buyer trust signal on the marketplace.",
+      },
+      {
+        key: "offer",
+        label: "Price and stock set",
+        pass: parseFloat(f.price || "0") > 0 && parseInt(f.stock || "0", 10) > 0,
+        tip: "In-stock listings get a ranking boost; zero-stock listings can't be purchased.",
+      },
+    ];
+  }, [f, isCannabinoid, potencyCount]);
+
+  const passed = checks.filter((c) => c.pass).length;
+  const score = Math.round((passed / checks.length) * 100);
 
   async function persist(submit: boolean) {
     setBusy(submit ? "submit" : "save");
@@ -98,13 +160,10 @@ export function ProductForm() {
         return;
       }
       if (submit) {
-        // Submitted drafts are locked for review — reset for the next listing.
         setDraftId(null);
-        setF(EMPTY_FORM);
-        setMsg({
-          tone: "ok",
-          text: "Submitted for compliance review — you'll see the decision here and by notification.",
-        });
+        setF({ ...EMPTY_FORM });
+        setMsg({ tone: "ok", text: "Submitted for compliance review — decisions land here and by email." });
+        router.push("/vendor-dashboard/products");
       } else {
         setDraftId(body.id ?? draftId);
         setMsg({ tone: "ok", text: "Draft saved — further saves update this same draft." });
@@ -119,21 +178,70 @@ export function ProductForm() {
 
   return (
     <div className="card-surface rounded-card p-6">
-      <h3 className="font-display text-base font-bold text-mist-100">New listing</h3>
-      <p className="mt-1 text-xs text-mist-400">
-        Drafts are private. Cannabinoid listings need structured COA data before they can enter review.
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="font-display text-base font-bold text-mist-100">
+            {draftId ? "Edit listing" : "New listing"}
+          </h3>
+          <p className="mt-1 text-xs text-mist-400">
+            {draftId
+              ? "Editing this draft — saves update it in place."
+              : "Drafts are private until they pass compliance review."}
+          </p>
+        </div>
+        {draftId && (
+          <a href="/marketplace/vendor-dashboard/products" className="text-xs font-semibold text-jade-300 hover:underline">
+            + Start new instead
+          </a>
+        )}
+      </div>
 
+      {/* ---- Quality meter ---- */}
+      <div className="mt-5 rounded-lg border border-ink-700 bg-ink-900/60 p-4">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-semibold uppercase tracking-wider text-mist-300">Listing quality</span>
+          <span className={`font-bold ${score >= 85 ? "text-jade-300" : score >= 50 ? "text-amber-glow" : "text-mist-400"}`}>
+            {score}%
+          </span>
+        </div>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink-700">
+          <div
+            className={`h-full rounded-full transition-all ${score >= 85 ? "bg-jade-500" : score >= 50 ? "bg-amber-glow" : "bg-ink-600"}`}
+            style={{ width: `${score}%` }}
+          />
+        </div>
+        <ul className="mt-3 space-y-1.5">
+          {checks.map((c) => (
+            <li key={c.key} className="group text-xs">
+              <span className={c.pass ? "text-jade-300" : "text-mist-400"}>
+                {c.pass ? "✓" : "○"} {c.label}
+              </span>
+              {!c.pass && <p className="ml-4 mt-0.5 hidden leading-relaxed text-mist-500 group-hover:block">{c.tip}</p>}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-2 text-[11px] text-mist-500">
+          Quality feeds search ranking and badge eligibility. Hover an unchecked item for guidance.
+        </p>
+      </div>
+
+      {/* ---- Fields ---- */}
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <input aria-label="Product title" placeholder="Product title *" value={f.title} onChange={(e) => set("title", e.target.value)} className={`${inputCls} sm:col-span-2`} />
+        <div className="sm:col-span-2">
+          <input aria-label="Product title" placeholder="Product title * (strain + type + size)" value={f.title} onChange={(e) => set("title", e.target.value)} className={inputCls} />
+          <p className="mt-1 text-right text-[10px] text-mist-500">{f.title.length}/70</p>
+        </div>
         <select aria-label="Category" value={f.categorySlug} onChange={(e) => set("categorySlug", e.target.value)} className={inputCls}>
           {CATEGORIES.map(([slug, label]) => <option key={slug} value={slug}>{label}</option>)}
         </select>
         <select aria-label="Cannabinoid type" value={f.cannabinoidType} onChange={(e) => set("cannabinoidType", e.target.value)} className={inputCls}>
           {CANNABINOIDS.map((c) => <option key={c} value={c}>{c === "none" ? "none (non-cannabinoid)" : c}</option>)}
         </select>
-        <input aria-label="Short description" placeholder="Short description (cards & search)" value={f.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} className={`${inputCls} sm:col-span-2`} />
-        <textarea aria-label="Description" placeholder="Full description" rows={3} value={f.description} onChange={(e) => set("description", e.target.value)} className={`${inputCls} sm:col-span-2`} />
+        <div className="sm:col-span-2">
+          <input aria-label="Short description" placeholder="Short description — one factual sentence (becomes your search snippet)" value={f.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} className={inputCls} />
+          <p className="mt-1 text-right text-[10px] text-mist-500">{f.shortDescription.length}/160</p>
+        </div>
+        <textarea aria-label="Description" placeholder={"Full description — cover strain & genetics, aroma/appearance, cultivation or manufacturing, intended use, and testing. Specific facts beat marketing language for SEO and AI search."} rows={5} value={f.description} onChange={(e) => set("description", e.target.value)} className={`${inputCls} sm:col-span-2`} />
         <div className="sm:col-span-2">
           <div className="flex items-center gap-3">
             <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-ink-600 bg-ink-800 px-3 py-2 text-sm font-medium text-mist-200 hover:border-jade-500/60">
@@ -172,7 +280,7 @@ export function ProductForm() {
               <img src={f.imageUrl} alt="Product preview" className="h-10 w-10 rounded-lg border border-ink-600 object-cover" />
             )}
           </div>
-          <input aria-label="Image URL" placeholder="…or paste an image URL (Supabase Storage or approved host)" value={f.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} className={`${inputCls} mt-2`} />
+          <input aria-label="Image URL" placeholder="…or paste an image URL" value={f.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} className={`${inputCls} mt-2`} />
         </div>
         <input aria-label="SKU" placeholder="SKU *" value={f.sku} onChange={(e) => set("sku", e.target.value)} className={inputCls} />
         <input aria-label="Variant name" placeholder="Variant (e.g. 3.5g)" value={f.variantName} onChange={(e) => set("variantName", e.target.value)} className={inputCls} />
@@ -196,10 +304,27 @@ export function ProductForm() {
         <input aria-label="CBD percent" placeholder="CBD %" inputMode="decimal" value={f.cbd} onChange={(e) => set("cbd", e.target.value)} className={inputCls} />
         <input aria-label="CBG percent" placeholder="CBG %" inputMode="decimal" value={f.cbg} onChange={(e) => set("cbg", e.target.value)} className={inputCls} />
       </div>
-      <p className="mt-2 text-[11px] text-mist-400">
-        COA file upload lands with the storage pipeline — until then structured data is entered here and the review
-        team cross-checks it before any badge appears.
-      </p>
+
+      {/* ---- Search preview ---- */}
+      {(f.title || f.shortDescription) && (
+        <div className="mt-6 rounded-lg border border-ink-700 bg-ink-900/60 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-mist-400">How this looks in Google</p>
+          <p className="mt-2 truncate text-[13px] text-mist-500">
+            buyhempflowernearme.com › marketplace › product
+          </p>
+          <p className="truncate text-[17px] leading-snug text-sky-400">
+            {f.title || "Product title"} — BHFNM Marketplace
+          </p>
+          <p className="line-clamp-2 text-[13px] leading-snug text-mist-300">
+            {f.shortDescription || f.description.slice(0, 160) || "Your short description appears here."}
+          </p>
+          <p className="mt-3 text-[10px] leading-relaxed text-mist-500">
+            AI answer engines additionally read your structured facts: {f.cannabinoidType !== "none" ? f.cannabinoidType.toUpperCase() : "product"} ·
+            {potencyCount > 0 ? ` ${potencyCount} potency value${potencyCount > 1 ? "s" : ""}` : " no potency data yet"} ·
+            {f.batchNumber ? ` batch ${f.batchNumber}` : " no batch"} · {f.labName ? f.labName : "no lab named"}
+          </p>
+        </div>
+      )}
 
       {msg && (
         <p className={`mt-4 text-sm ${msg.tone === "ok" ? "text-jade-300" : "text-signal-red"}`} role="status">
@@ -207,13 +332,16 @@ export function ProductForm() {
         </p>
       )}
 
-      <div className="mt-5 flex gap-3">
+      <div className="mt-5 flex items-center gap-3">
         <Button variant="secondary" disabled={busy !== null} onClick={() => persist(false)}>
           {busy === "save" ? "Saving…" : "Save draft"}
         </Button>
         <Button disabled={busy !== null} onClick={() => persist(true)}>
           {busy === "submit" ? "Submitting…" : "Submit for review"}
         </Button>
+        {score < 85 && (
+          <span className="text-[11px] text-mist-500">Tip: 85%+ quality listings rank noticeably better.</span>
+        )}
       </div>
     </div>
   );

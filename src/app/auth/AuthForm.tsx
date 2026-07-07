@@ -38,9 +38,11 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       // Ensure a profiles row exists before landing anywhere role-gated.
       await fetch("/marketplace/api/auth/ensure-profile", { method: "POST" });
       const next = params.get("next");
-      // router.push prefixes the /marketplace basePath itself.
-      router.push(next && next.startsWith("/") && !next.startsWith("//") ? next : "/account");
-      router.refresh();
+      const dest = next && next.startsWith("/") && !next.startsWith("//") ? next : "/account";
+      // Full navigation (not router.push): guarantees the middleware sees the
+      // fresh session cookies — client-side push raced them and bounced back
+      // to sign-in, which read as "button needs two clicks".
+      window.location.assign(`/marketplace${dest}`);
     } finally {
       setBusy(false);
     }
