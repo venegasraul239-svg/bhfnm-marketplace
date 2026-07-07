@@ -88,9 +88,17 @@ export default async function VendorProducts({
 
   return (
     <DashboardShell title="Products" nav={VENDOR_NAV} active="/vendor-dashboard/products" badge={vendor.brand_name}>
-      <p className="mb-6 text-sm text-mist-400">
-        New and edited listings go to compliance review before publishing — status changes are never automatic.
-      </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-mist-400">
+          New and edited listings go to compliance review before publishing — status changes are never automatic.
+        </p>
+        <a
+          href="/marketplace/vendor-dashboard/products/import"
+          className="rounded-lg border border-ink-600 bg-ink-800 px-3 py-2 text-sm font-semibold text-mist-200 hover:border-jade-500/60"
+        >
+          Import from Shopify / WooCommerce
+        </a>
+      </div>
 
       {edit && !initial && (
         <p className="mb-4 rounded-lg border border-amber-glow/30 bg-amber-glow/10 px-4 py-3 text-sm text-amber-glow">

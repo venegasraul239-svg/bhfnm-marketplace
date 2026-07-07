@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "buyhempflowernearme.com" },
       { protocol: "https", hostname: "**.supabase.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      // Imported catalogs reference vendor/CDN-hosted images (Shopify, Woo
+      // uploads, brand sites). SafeImage degrades broken ones gracefully.
+      { protocol: "https", hostname: "**" },
     ],
   },
   async headers() {
