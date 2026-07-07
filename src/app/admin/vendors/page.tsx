@@ -5,6 +5,7 @@ import { DashboardShell, ADMIN_NAV } from "@/components/DashboardShell";
 import { EmptyState, StatusPill } from "@/components/ui";
 import { supabaseService } from "@/lib/supabase";
 import { DecisionPanel } from "./DecisionPanel";
+import { VendorControls } from "./VendorControls";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +124,7 @@ export default async function AdminVendorsPage() {
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Joined</th>
                 <th className="px-4 py-3">Storefront</th>
+                <th className="px-4 py-3">Superadmin</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-700">
@@ -136,6 +138,9 @@ export default async function AdminVendorsPage() {
                   <td className="px-4 py-3 text-mist-300">{new Date(v.joined_at).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
                     <a href={`/marketplace/store/${v.slug}`} className="text-jade-300 hover:underline">/{v.slug}</a>
+                  </td>
+                  <td className="px-4 py-3">
+                    <VendorControls vendorId={v.id} status={v.status} />
                   </td>
                 </tr>
               ))}

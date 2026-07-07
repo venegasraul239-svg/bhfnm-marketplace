@@ -79,7 +79,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
               </div>
             </div>
             <div className="flex gap-3">
-              <Button href="/messages" variant="secondary">
+              <Button href={`/messages?vendor=${vendor.slug}`} variant="secondary">
                 <MessageSquare className="h-4 w-4" aria-hidden /> Contact via marketplace inbox
               </Button>
               {vendor.wholesaleEnabled && <Button href="/categories/wholesale">Wholesale inquiry</Button>}
