@@ -25,6 +25,10 @@ export default function SignInPage() {
         <Link href="/auth/sign-up" className="font-semibold text-jade-300 hover:text-jade-200">
           Create an account
         </Link>
+        {" · "}
+        <Link href="/auth/forgot" className="font-semibold text-jade-300 hover:text-jade-200">
+          Forgot password?
+        </Link>
       </p>
     </div>
   );
